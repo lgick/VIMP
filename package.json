@@ -1,0 +1,14 @@
+{
+  "name": "vimp",
+  "version": "0.0.1",
+  "description": "game",
+  "private": true,
+  "scripts": {
+    "start": "nodemon server.js"
+  },
+  "dependencies": {
+    "socket.io": "*",
+    "express": "3.3.4",
+    "jade": "*"
+  }
+}

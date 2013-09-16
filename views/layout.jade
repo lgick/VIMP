@@ -1,0 +1,35 @@
+doctype 5
+html
+  head
+    meta(charset='UTF-8')
+    title= title
+    link(rel='stylesheet', href= cssURL + 'style.css')
+    script(data-main= jsURL + 'app', src= jsURL + 'lib/require.js')
+    script.
+      require.config({
+        paths: {
+          io:          '/vimp/socket.io/socket.io',
+          createjs:    'lib/easeljs-NEXT.min',
+
+          Publisher:   'pattern/publisher',
+
+          UserView:    'view/user',
+          GameView:    'view/game',
+
+          UserModel:   'model/user',
+          GameModel:   'model/game',
+
+          TankModel:   'model/game/tank',
+          ShipModel:   'model/game/ship',
+
+          UserCtrl:    'controller/user',
+          GameCtrl:    'controller/game'
+        },
+        shim: {
+          'createjs': {
+            exports: 'createjs'
+          }
+        }
+      });
+  body
+    block content

@@ -1,0 +1,35 @@
+extends layout
+block content
+  h1#logo= title
+  canvas#vimp(width='960', height='600')
+  canvas#radar(width='150', height='150')
+  div#auth
+    div.prompt
+      h2= 'hallo sweet user&& Welkome in VIMP!'
+      div
+        span= 'Please name (a-zA-Z0-9_):'
+        input#auth-name(type='text', maxlength='15', placeholder='Bow_e')
+      div
+        span= 'Please your color:'
+        br
+        span.red= 'red'
+        input(type='radio', name='auth-color', value='red', checked)
+        br
+        span.orange= 'orange'
+        input(type='radio', name='auth-color', value='orange')
+        br
+        span.yellow= 'yellow'
+        input(type='radio', name='auth-color', value='yellow')
+        br
+        span.green= 'green'
+        input(type='radio', name='auth-color', value='green')
+        br
+        span.cyan= 'cyan'
+        input(type='radio', name='auth-color', value='cyan')
+        br
+        span.blue= 'blue'
+        input(type='radio', name='auth-color', value='blue')
+        br
+        span.violet= 'violet'
+        input(type='radio', name='auth-color', value='violet')
+      button#auth-enter= 'Enter'

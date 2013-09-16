@@ -1,0 +1,98 @@
+@charset "UTF-8";
+
+html, body {
+  padding: 0;
+  margin: 0;
+}
+
+html {
+  width: 100%;
+  height: 100%;
+}
+
+body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  background-color: #000;
+  color: #ccc;
+  font-family: "Lucida Grande", Helvetica, Arial, Verdana, sans-serif;
+}
+
+#logo {
+  position: absolute;
+  left: 5px;
+  top: 5px;
+  font-size: 24px;
+  line-height: 30px;
+  margin: 0;
+}
+
+#vimp {
+  display: none;
+}
+
+#radar {
+  display: none;
+  position: absolute;
+  right: 5px;
+  top: 5px;
+  border-radius: 50%;
+  background-color: rgba(0, 190, 90, 0.8);
+}
+
+/*auth*/
+
+#auth {
+  background-color: #000;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  display: none;
+}
+
+#auth .prompt {
+  width: 500px;
+  margin: 50px auto;
+  border: 1px solid #fff;
+  padding: 15px;
+}
+
+#auth .prompt > div {
+  padding: 10px;
+}
+
+#auth .prompt .red {
+  color: red;
+}
+
+#auth .prompt .orange {
+  color: orange;
+}
+
+#auth .prompt .yellow {
+  color: yellow;
+}
+
+#auth .prompt .green {
+  color: green;
+}
+
+#auth .prompt .cyan {
+  color: cyan;
+}
+
+#auth .prompt .blue {
+  color: blue;
+}
+
+#auth .prompt .violet {
+  color: violet;
+}
+
+#auth .prompt #auth-enter {
+  display: block;
+  margin: auto;
+}
