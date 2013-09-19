@@ -3,13 +3,15 @@ require([
   'Publisher',
   'UserModel', 'UserView', 'UserCtrl',
   'GameModel', 'GameView', 'GameCtrl',
-  'TankModel', 'ShipModel'
+  'TankModel', 'ShipModel',
+  'RadarModel', 'RadarView'
 ], function (
   io, createjs,
   Publisher,
   UserModel, UserView, UserCtrl,
   GameModel, GameView, GameCtrl,
-  TankModel, ShipModel
+  TankModel, ShipModel,
+  RadarModel, RadarView
 ) {
 
   var window = this
@@ -25,20 +27,16 @@ require([
     , CANVAS_VIMP_ID = 'vimp'
     , CANVAS_RADAR_ID = 'radar'
 
+    , gameModel = null  // модель
+    , gameView = null   // представление
+    , gameCtrl = null   // контроллер
+
+    , radarModel = null // модель радара
+    , radarView = null  // представление радара
+
     , V;
 
   V = {
-    // представление
-    gameView: null,
-
-    // контроллер
-    gameCtrl: null,
-
-    // все игроки
-    // TODO: после каждого раунда игры
-    // этот объект нужно очищать
-    players: {},
-
     // отправляет данные на сервер
     sendData: function (tag, data) {
       socket.emit(tag, data);
@@ -72,55 +70,6 @@ require([
         userColor = localStorage.userColor = data.color;
       });
     },
-
-    // создание нового игрока
-    createPlayer: function (player, data) {
-      // TODO эту хрень можно удалить
-      if (this.players[player]) {
-        return;
-      }
-
-      this.players[player] = GameModel(data.model, data);
-      this.gameView.addChild(this.players[player]);
-
-      console.log('Создан игрок с координатами x:' + data.x + ', y:' + data.y);
-    },
-
-    // обновление данных игрока
-    updatePlayer: function (player, data) {
-      var player = this.players[player];
-
-      player.x = data.x;
-      player.y = data.y;
-      player.rotation = data.rotation;
-    //  player.gun.rotation = data.gunRotation;
-
-      console.log(
-        'Игрок переместился на координаты x:' + player.x + ', y:' + player.y
-      );
-
-      // если сервер сменил статус
-      // обновить частные персональные пользователя
-      if (data.status === 'update') {
-        player.name = data.name;
-        player.color = data.color;
-        player.scale = data.scale;
-      }
-    },
-
-    // удаление игрока
-    removePlayer: function (player) {
-      delete this.players[player];
-    },
-
-    // изменяет все данные на дефолтные
-    // значения
-    // (это нужно, например перед началом
-    // нового раунда или при длительном
-    // игровом процессе)
-    cleanData: function () {
-      this.players = {};
-    }
   };
 
   // проверка наличия данных
@@ -157,21 +106,18 @@ require([
       vimp.style.display = 'block';
       radar.style.display = 'block';
 
-      // активация GameView
-      V.gameView = new GameView({
+      gameModel = new GameModel();
+
+      // Активация GameView
+      gameView = new GameView(gameModel, {
         width: vimp.width,
         height: vimp.height,
-        vimp: vimp,
+        stage: vimp,
         window: window
       });
 
-      // TODO: активация RadarView
-      //V.radarView = new RadarView({
-      //  radar: radar
-      //});
-
       // активация GameCtrl
-      V.gameCtrl = new GameCtrl(V.gameView, {
+      gameCtrl = new GameCtrl(gameView, {
         87: 'forward',
         83: 'back',
         65: 'left',
@@ -185,13 +131,22 @@ require([
         81: 'zoomDefault'
       });
 
+      radarModel = new RadarModel();
+
+      // Активация RadarView
+      radarView = new RadarView(radarModel, {
+        width: radar.width,
+        height: radar.height,
+        stage: radar
+      });
+
       // Счетчик: отправляет данные
       // нажатых клавиш на сервер.
       // Если данных нет, то на сервер
       // поступает пустой массив
       // (но только 1 раз!)
       ticker.addEventListener("tick", function() {
-        var cmds = V.gameCtrl.cmds;
+        var cmds = gameCtrl.cmds;
 
         if (cmds.length !== 0) {
           V.sendData('cmds', cmds);
@@ -205,8 +160,10 @@ require([
       // событие при изменении размеров игры
       window.onresize = function () {
         resizeGame();
-        V.gameView.resize(vimp.width, vimp.height);
-        V.gameView.update(V.players[userName]);
+        gameView.resize(vimp.width, vimp.height);
+        gameView.update(gameModel._data[userName]);
+        radarView.resize(radar.width, radar.height);
+        radarView.update(radarModel._data[userName]);
       };
     }
   });
@@ -217,23 +174,33 @@ require([
       return;
     }
 
-    var players = V.players
+    var players = gameModel._data
       , i;
 
     for (i in data) {
       if (data.hasOwnProperty(i)) {
+
         // если игрок есть - обновить данные
         if (players[i]) {
-          V.updatePlayer(i, data[i]);
+          console.log('обновление игрока');
+          gameModel.update(i, data[i]);
+          radarModel.update(i, data[i]);
+
         // иначе создать игрока
         } else {
-          V.createPlayer(i, data[i]);
+          console.log('cоздание игрока');
+          gameModel.create(i, data[i]);
+          radarModel.create(i, data[i]);
         }
       }
     }
 
+    // После обработки данных
     // обновление полотна пользователя
-    V.gameView.update(players[userName]);
+    gameView.update(players[userName]);
+
+    // Обновление радара
+    radarView.update(players[userName]);
   });
 
 });

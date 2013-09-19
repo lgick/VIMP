@@ -48,13 +48,13 @@ define(['createjs'], function (createjs) {
     g.beginFill(color);
     g.moveTo(0, 20);
     g.lineTo(6, 6);
-    g.lineTo(10, 6);
+    g.lineTo(10, 5);
     g.lineTo(10, 1);
     g.lineTo(12, -8);
     g.lineTo(0, -2);
     g.lineTo(-12, -8);
     g.lineTo(-10, 1);
-    g.lineTo(-10, 6);
+    g.lineTo(-10, 5);
     g.lineTo(-6, 6);
     g.closePath();
     // кабина пилота
@@ -69,7 +69,7 @@ define(['createjs'], function (createjs) {
     g.setStrokeStyle(1);
     g.beginStroke('#cccccc');
     g.beginFill(color);
-    g.moveTo(-10, 6);
+    g.moveTo(-10, 5);
     g.lineTo(-18, 0);
     g.lineTo(-16, -8);
     g.lineTo(-12, -8);
@@ -79,7 +79,7 @@ define(['createjs'], function (createjs) {
     g.setStrokeStyle(1);
     g.beginStroke('#cccccc');
     g.beginFill(color);
-    g.moveTo(10, 6);
+    g.moveTo(10, 5);
     g.lineTo(18, 0);
     g.lineTo(16, -8);
     g.lineTo(12, -8);

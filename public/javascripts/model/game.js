@@ -1,38 +1,46 @@
 define([
+  'Publisher',
   'TankModel',
   'ShipModel'
 ], function (
+  Publisher,
   Tank,
   Ship
 ) {
-  // Factory GameModel
-  function GameModel(type, params) {
-    if (typeof GameModel[type] !== 'function') {
-      return;
+  // Модель для строительства объектов
+  // на игровом пространстве.
+  // Объекты хранятся в переменной gameModel
+  // TODO: Доступны как this._data[тип][имя]
+  var gameModel;
+
+  // Singleton GameModel
+  function GameModel() {
+    if (gameModel) {
+      return gameModel;
     }
 
-    // новый экземпляр
-    var instance = new GameModel[type](params);
+    gameModel = this;
 
-    return instance;
+    this._data = {};
+    this.publisher = new Publisher();
   }
 
-  // метод для добавления новых продуктов к фабрике
-  GameModel.add = function (name, object) {
-    var props = GameModel.prototype
+  // наделяет конструкторы дополнительными методами
+  GameModel._add = function (name, object) {
+    var addons = GameModel.prototype._addon
       , i;
 
-    for (i in props) {
-      if (props.hasOwnProperty(i)) {
-        object.prototype[i] = props[i];
+    for (i in addons) {
+      if (addons.hasOwnProperty(i)) {
+        object.prototype[i] = addons[i];
       }
     }
 
     GameModel[name] = object;
   };
 
-  // общие методы, которые наследуются всегда
-  GameModel.prototype = {
+  // общие методы, которые наследуют конструкторы
+  GameModel.prototype._addon = {
     getModel: function () {
       console.log(this.model);
     },
@@ -44,8 +52,38 @@ define([
     }
   };
 
-  GameModel.add('Tank', Tank);  // делает танки
-  GameModel.add('Ship', Ship);  // делает корабли
+  // Factory Method GameModel.factory()
+  GameModel.prototype.create = function (name, data) {
+    this._data[name] = new GameModel[data.model](data);
+    this.publisher.emit('create', this._data[name]);
+  };
+
+  // обновляет данные игрока
+  GameModel.prototype.update = function (name, data) {
+    var p = this._data[name];
+
+    p.x = data.x;
+    p.y = data.y;
+    p.rotation = data.rotation;
+    p.scale = data.scale;
+  };
+
+  // удаляет игрока
+  GameModel.prototype.remove = function (name) {
+    var player = this._data[name];
+
+    delete this._data[name];
+    this.publisher.emit('remove', player);
+  };
+
+  // удаляет всех игроков всех типов
+  GameModel.prototype.clear = function () {
+    this._data = {};
+    this.publisher.emit('clear');
+  };
+
+  GameModel._add('Tank', Tank);  // делает танки
+  GameModel._add('Ship', Ship);  // делает корабли
 
   return GameModel;
 });

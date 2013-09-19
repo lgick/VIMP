@@ -9,7 +9,7 @@ define([
   var gameView
     , Stage = createjs.Stage;
 
-  function GameView(params) {
+  function GameView(model, params) {
     if (gameView) {
       return gameView;
     }
@@ -17,7 +17,8 @@ define([
     gameView = this;
 
     this.key = new Publisher();
-    this._stage = new Stage(params.vimp);
+    this._model = model.publisher;
+    this._stage = new Stage(params.stage);
     this._width = params.width;
     this._height = params.height;
 
@@ -27,12 +28,24 @@ define([
     params.window.onkeyup = function (e) {
       gameView.key.emit('up', e.keyCode);
     };
+
+    this._model.on('create', 'add', gameView);
+    this._model.on('remove', 'remove', gameView);
+    this._model.on('clear', 'clear', gameView);
   }
 
   GameView.prototype = {
-    // создает новый объект
-    addChild: function (model) {
-      this._stage.addChild(model);
+    // создает экземпляр на полотне
+    add: function (player) {
+      this._stage.addChild(player);
+    },
+    // удаляет экземпляр с полотна
+    remove: function (player) {
+      this._stage.removeChild(player);
+    },
+    // полностью очищает полотно
+    clear: function () {
+      this._stage.removeAllChildren();
     },
     // обновляет полотно
     update: function (userModel) {
