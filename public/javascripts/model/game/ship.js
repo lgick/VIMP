@@ -9,6 +9,22 @@ define(['createjs'], function (createjs) {
     }
   }
 
+  // обновляет функционал экземпляра
+  Ship.update = function (player, data) {
+    player.x = data.x;
+    player.y = data.y;
+    player.rotation = data.rotation;
+    player.scale = data.scale;
+
+    if (data.flame) {
+      player.makeFlameOn();
+    } else {
+      player.makeFlameOff();
+    }
+
+    return player;
+  };
+
   p = Ship.prototype = new Container();
   p.Container_initialize = p.initialize;
 
@@ -33,7 +49,7 @@ define(['createjs'], function (createjs) {
     this.rotation = params.rotation || 0;
 
     this.makeBody();
-    this.makeFlame();
+    this.makeFlameOff();
   };
 
   // создание тела
@@ -46,80 +62,83 @@ define(['createjs'], function (createjs) {
     g.setStrokeStyle(1);
     g.beginStroke('#cccccc');
     g.beginFill(color);
-    g.moveTo(0, 20);
-    g.lineTo(6, 6);
-    g.lineTo(10, 5);
-    g.lineTo(10, 1);
-    g.lineTo(12, -8);
-    g.lineTo(0, -2);
-    g.lineTo(-12, -8);
-    g.lineTo(-10, 1);
-    g.lineTo(-10, 5);
-    g.lineTo(-6, 6);
+    g.moveTo(0, 13);
+    g.lineTo(6, -1);
+    g.lineTo(10, -2);
+    g.lineTo(10, -6);
+    g.lineTo(12, -15);
+    g.lineTo(0, -9);
+    g.lineTo(-12, -15);
+    g.lineTo(-10, -6);
+    g.lineTo(-10, -2);
+    g.lineTo(-6, -1);
     g.closePath();
     // кабина пилота
     g.beginStroke('#333333');
     g.beginFill('#cccccc');
-    g.moveTo(0, 14);
-    g.lineTo(5, 0);
-    g.lineTo(0, 2);
-    g.lineTo(-5, 0);
+    g.moveTo(0, 7);
+    g.lineTo(5, -7);
+    g.lineTo(0, -5);
+    g.lineTo(-5, -7);
     g.closePath();
     // левое крыло
     g.setStrokeStyle(1);
     g.beginStroke('#cccccc');
     g.beginFill(color);
-    g.moveTo(-10, 5);
-    g.lineTo(-18, 0);
-    g.lineTo(-16, -8);
-    g.lineTo(-12, -8);
-    g.lineTo(-10, 1);
+    g.moveTo(-10, -2);
+    g.lineTo(-18, -7);
+    g.lineTo(-16, -15);
+    g.lineTo(-12, -15);
+    g.lineTo(-10, -6);
     g.closePath();
     // правое крыло
     g.setStrokeStyle(1);
     g.beginStroke('#cccccc');
     g.beginFill(color);
-    g.moveTo(10, 5);
-    g.lineTo(18, 0);
-    g.lineTo(16, -8);
-    g.lineTo(12, -8);
-    g.lineTo(10, 1);
+    g.moveTo(10, -2);
+    g.lineTo(18, -7);
+    g.lineTo(16, -15);
+    g.lineTo(12, -15);
+    g.lineTo(10, -6);
     g.closePath();
   };
 
-  // создание турбины
-  p.makeFlame = function (fire) {
+  p.makeFlameOn = function () {
     var g = this.flame.graphics;
 
     g.clear();
 
-    if (fire) {
-      g.setStrokeStyle(1);
-      g.beginStroke('blue');
-      g.beginFill('orange');
-      g.moveTo(-6, -6);
-      g.lineTo(-4, -8);
-      g.lineTo(-2, -6);
-      g.lineTo(0, -12);
-      g.lineTo(2, -6);
-      g.lineTo(4, -8);
-      g.lineTo(6, -6);
-      g.lineTo(0, -2);
-      g.closePath();
-    } else {
-      g.setStrokeStyle(1);
-      g.beginStroke('#444444');
-      g.beginFill('#440000');
-      g.moveTo(-6, -6);
-      g.lineTo(-4, -8);
-      g.lineTo(-2, -6);
-      g.lineTo(0, -8);
-      g.lineTo(2, -6);
-      g.lineTo(4, -8);
-      g.lineTo(6, -6);
-      g.lineTo(0, -2);
-      g.closePath();
-    }
+    g.setStrokeStyle(1);
+    g.beginStroke('blue');
+    g.beginFill('orange');
+    g.moveTo(-6, -13);
+    g.lineTo(-4, -15);
+    g.lineTo(-2, -13);
+    g.lineTo(0, -19);
+    g.lineTo(2, -13);
+    g.lineTo(4, -15);
+    g.lineTo(6, -13);
+    g.lineTo(0, -9);
+    g.closePath();
+  };
+
+  p.makeFlameOff = function () {
+    var g = this.flame.graphics;
+
+    g.clear();
+
+    g.setStrokeStyle(1);
+    g.beginStroke('#444444');
+    g.beginFill('#440000');
+    g.moveTo(-6, -13);
+    g.lineTo(-4, -15);
+    g.lineTo(-2, -13);
+    g.lineTo(0, -15);
+    g.lineTo(2, -13);
+    g.lineTo(4, -15);
+    g.lineTo(6, -13);
+    g.lineTo(0, -9);
+    g.closePath();
   };
 
   return Ship;

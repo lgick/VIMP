@@ -9,6 +9,17 @@ define(['createjs'], function (createjs) {
     }
   }
 
+  // обновляет функционал экземпляра
+  Tank.update = function (player, data) {
+    player.x = data.x;
+    player.y = data.y;
+    player.rotation = data.rotation;
+    player.scale = data.scale;
+    player.gun.rotation = data.gunRotation;
+
+    return player;
+  };
+
   p = Tank.prototype = new Container();
   p.Container_initialize = p.initialize;
 

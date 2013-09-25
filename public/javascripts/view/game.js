@@ -50,11 +50,17 @@ define([
     // обновляет полотно
     update: function (userModel) {
       if (userModel) {
-        var x = userModel.scale / 100 || 1;
-        this._stage.x = -(userModel.x * x - this._width / 2);
-        this._stage.y = -(userModel.y * x - this._height / 2);
-        this._stage.scaleX = x;
-        this._stage.scaleY = x;
+        var s = userModel.scale;
+
+        this._stage.x = -(userModel.x * s - this._width / 2);
+        this._stage.y = -(userModel.y * s - this._height / 2);
+
+        // устранение неточности
+        this._stage.x = +(this._stage.x).toFixed(10);
+        this._stage.y = +(this._stage.y).toFixed(10);
+
+        this._stage.scaleX = s;
+        this._stage.scaleY = s;
       }
 
       this._stage.update();

@@ -1,16 +1,17 @@
 define([
   'Publisher',
-  'TankModel',
   'ShipModel'
 ], function (
   Publisher,
-  Tank,
   Ship
 ) {
-  // Модель для строительства объектов
-  // на игровом пространстве.
-  // Объекты хранятся в переменной gameModel
-  // TODO: Доступны как this._data[тип][имя]
+  // Фабрика для строительства объектов игры
+  // Объекты хранятся в переменной GameModel._data
+  // TODO:
+  // Сейчас данные имеют вид:
+  // this._data[имя экземпляра]
+  // Лучше строить с учетом названия конструктора:
+  // this._data[название конструктора][имя экземпляра]
   var gameModel;
 
   // Singleton GameModel
@@ -27,7 +28,7 @@ define([
 
   // наделяет конструкторы дополнительными методами
   GameModel._add = function (name, object) {
-    var addons = GameModel.prototype._addon
+    var addons = GameModel.prototype._addons
       , i;
 
     for (i in addons) {
@@ -40,7 +41,7 @@ define([
   };
 
   // общие методы, которые наследуют конструкторы
-  GameModel.prototype._addon = {
+  GameModel.prototype._addons = {
     getModel: function () {
       console.log(this.model);
     },
@@ -52,20 +53,24 @@ define([
     }
   };
 
-  // Factory Method GameModel.factory()
-  GameModel.prototype.create = function (name, data) {
-    this._data[name] = new GameModel[data.model](data);
+  // Factory Method GameModel.create()
+  GameModel.prototype.create = function (data) {
+    var name = data.name
+      , model = data.model;
+
+    this._data[name] = new GameModel[model](data);
     this.publisher.emit('create', this._data[name]);
   };
 
   // обновляет данные игрока
-  GameModel.prototype.update = function (name, data) {
-    var p = this._data[name];
+  // с помощью метода update конструктора
+  // (этот метод отвечает за функционал
+  // данного конструктора)
+  GameModel.prototype.update = function (data) {
+    var name = data.name
+      , model = data.model;
 
-    p.x = data.x;
-    p.y = data.y;
-    p.rotation = data.rotation;
-    p.scale = data.scale;
+    GameModel[model].update(this._data[name], data);
   };
 
   // удаляет игрока
@@ -82,8 +87,8 @@ define([
     this.publisher.emit('clear');
   };
 
-  GameModel._add('Tank', Tank);  // делает танки
-  GameModel._add('Ship', Ship);  // делает корабли
+  // конструкторы
+  GameModel._add('Ship', Ship);
 
   return GameModel;
 });

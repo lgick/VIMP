@@ -6,9 +6,8 @@ define([
   Publisher
 ) {
   // Singleton RadarModel
-  var Shape = createjs.Shape
-    , radarModel
-    , p;
+  var radarModel
+    , Shape = createjs.Shape;
 
   function RadarModel() {
     if (radarModel) {
@@ -23,8 +22,9 @@ define([
 
   RadarModel.prototype = {
     // создает новый объект
-    create: function (name, data) {
-      var player
+    create: function (data) {
+      var name = data.name
+        , player
         , g;
 
       player = this._data[name] = new Shape();
@@ -38,22 +38,21 @@ define([
 
       g.beginStroke('#333333');
       g.beginFill(data.color);
-      g.moveTo(0, 14);
-      g.lineTo(5, 0);
-      g.lineTo(0, 2);
-      g.lineTo(-5, 0);
+      g.moveTo(0, 7);
+      g.lineTo(5, -7);
+      g.lineTo(0, -5);
+      g.lineTo(-5, -7);
       g.closePath();
 
       this.publisher.emit('create', player);
     },
-    // изменяет данные объекта
-    update: function (name, data) {
-      var p = this._data[name];
+    // изменяет данные объектов
+    update: function (data) {
+      var p = this._data[data.name];
 
       p.x = data.x;
       p.y = data.y;
       p.rotation = data.rotation;
-      p.scale = data.scale;
     },
     // удаляет объект
     remove: function (name) {
