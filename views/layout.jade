@@ -9,6 +9,7 @@ html
       require.config({
         paths: {
           io:          '/vimp/socket.io/socket.io',
+          preloadjs:   'lib/preloadjs-NEXT.min',
           createjs:    'lib/easeljs-NEXT.min',
 
           Publisher:   'pattern/publisher',
@@ -17,15 +18,17 @@ html
           UserView:    'view/user',
           UserCtrl:    'controller/user',
 
+          BackModel:   'model/back',
+          BackView:    'view/back',
+
           GameModel:   'model/game',
           GameView:    'view/game',
           GameCtrl:    'controller/game',
 
-          TankModel:   'model/game/tank',
           ShipModel:   'model/game/ship',
 
-          RadarView:   'view/radar',
-          RadarModel:  'model/radar'
+          RadarModel:  'model/radar',
+          RadarView:   'view/radar'
         },
         shim: {
           'createjs': {
