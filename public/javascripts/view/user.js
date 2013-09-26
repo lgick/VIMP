@@ -9,37 +9,48 @@ define(['Publisher'], function (Publisher) {
 
     userView = this;
 
-    this._model = model;
-    this._elements = elements;
+    this._mPublic = model.publisher;
+    this._auth = elements.auth;
+    this._name = elements.name;
+    this._colors = elements.colors;
+    this._enter = elements.enter;
 
-    this.authEnter = new Publisher();
+    this.publisher = new Publisher();
 
-    this._model.data.on('data', 'hide', userView);
-    this._model.data.on('error', 'clear', userView);
+    this._enter.onclick = function() {
+      var colors = userView._colors
+        , i = 0
+        , len = colors.length
+        , color;
 
-    this._elements.enter.onclick = function() {
-      userView.authEnter.emit('data', {
-        name: userView._elements.name,
-        colors: userView._elements.colors
+      for (; i < len; i += 1) {
+        if (colors[i].checked) {
+          color = colors[i].value;
+        }
+      }
+
+      userView.publisher.emit('auth', {
+        name: userView._name.value,
+        color: color
       });
     };
+
+    this._mPublic.on('data', 'hide', userView);
+    this._mPublic.on('error', 'clear', userView);
   }
 
   UserView.prototype = {
     // показывает форму
     show: function () {
-      var auth = this._elements.auth;
-      auth.style.display = 'block';
+      this._auth.style.display = 'block';
     },
     // скрывает форму
     hide: function () {
-      var auth = this._elements.auth;
-      auth.style.display = 'none';
+      this._auth.style.display = 'none';
     },
     // очищает форму
     clear: function () {
-      var name = this._elements.name;
-      name.value = '';
+      this._name.value = '';
     }
   };
 

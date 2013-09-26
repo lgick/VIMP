@@ -2,36 +2,32 @@ define(['Publisher'], function (Publisher) {
   // Singleton UserModel
   var userModel;
 
-  function UserModel(params) {
+  function UserModel() {
     if (userModel) {
       return userModel;
     }
 
     userModel = this;
 
-    this._params = params;
-    this.data = new Publisher();
+    this.publisher = new Publisher();
   }
 
   UserModel.prototype = {
-    // добавление данных
-    addData: function (data) {
+    // проверка имени
+    validate: function (data) {
       var name = data.name
         , color = data.color;
 
-      if (name && color) {
-        this.publishData(data);
+      if (name && !(/\W/).test(name)) {
+        this.publisher.emit('data', {
+          name: name,
+          color: color
+        });
       } else {
-        this.publishError('Error this form');
+        this.publisher.emit('error', {
+          error: 'This form not valid'
+        });
       }
-    },
-    // рассылка: параметры
-    publishData: function (data) {
-      this.data.emit('data', data);
-    },
-    // рассылка: ошибка
-    publishError: function (error) {
-      this.data.emit('error', error);
     }
   };
 

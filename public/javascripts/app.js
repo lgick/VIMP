@@ -79,7 +79,7 @@ require([
 
       // при поступлении новых данных:
       // - отправка данных на сервер
-      userModel.data.on('data', function (data) {
+      userModel.publisher.on('data', function (data) {
         V.sendData('user', data);
         // имя и цвет
         // в переменные(переменные используются!)
@@ -114,9 +114,12 @@ require([
     function resizeGame(width, height) {
       back.width = width || window.innerWidth;
       back.height = height || window.innerHeight;
+
       vimp.width = width || window.innerWidth;
       vimp.height = height || window.innerHeight;
-      radar.width = radar.height = Math.round(vimp.width * RADAR_PROPORTION);
+
+      radar.width = radar.height =
+        Math.round(vimp.width * RADAR_PROPORTION);
     }
 
     // если активация на сервере прошла успешно
@@ -126,8 +129,6 @@ require([
 
       backModel = new BackModel();
       backView = new BackView(backModel, {
-        width: back.width,
-        height: back.height,
         stage: back
       });
 
@@ -216,11 +217,15 @@ require([
       });
 
       // событие при изменении размеров игры
-      // TODO: сделать параметры пользователя универсальными
+      // TODO: сделать параметры пользователя
+      // универсальными
       window.onresize = function () {
         resizeGame();
-        backView.resize(back.width, back.height);
-        backView.update(gameModel._data[userName]);
+        backModel.move('background',
+                       gameModel._data[userName].x,
+                       gameModel._data[userName].y,
+                       gameModel._data[userName].scale
+                      );
         gameView.resize(vimp.width, vimp.height);
         gameView.update(gameModel._data[userName]);
         radarView.resize(radar.width, radar.height);
@@ -252,7 +257,10 @@ require([
 
       // если x или y не равны 0
       if (backX || backY) {
-        backModel.move('background', backX, backY, scale);
+        backModel.move('background',
+                       backX,
+                       backY,
+                       scale);
       }
     }
 
@@ -276,10 +284,10 @@ require([
 
     // После обработки данных
     // обновление полотна пользователя
-    gameView.update(players[userName]);
+    gameView.update(gameModel._data[userName]);
 
     // Обновление радара
-    radarView.update(players[userName]);
+    radarView.update(radarModel._data[userName]);
   });
 
 });
