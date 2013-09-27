@@ -10,13 +10,11 @@ define(['createjs'], function(createjs) {
 
     backView = this;
 
-    this._model = model.publisher;
+    this._mPublic = model.publisher;
     this._stage = new Stage(params.stage);
-    this._width = params.width;
-    this._height = params.height;
 
-    this._model.on('create', 'add', backView);
-    this._model.on('move', 'update', backView);
+    this._mPublic.on('create', 'add', backView);
+    this._mPublic.on('move', 'update', backView);
   }
 
   BackView.prototype = {
@@ -28,11 +26,6 @@ define(['createjs'], function(createjs) {
     // обновляет полотно
     update: function () {
       this._stage.update();
-    },
-    // изменение размеров игры
-    resize: function (width, height) {
-      this._width = width;
-      this._height = height;
     }
   };
 
