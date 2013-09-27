@@ -1,7 +1,7 @@
 require([
   'io', 'preloadjs', 'createjs',
   'Publisher',
-  'UserModel', 'UserView', 'UserCtrl',
+  'AuthModel', 'AuthView', 'AuthCtrl',
   'BackModel', 'BackView',
   'GameModel', 'GameView', 'GameCtrl',
   'ShipModel',
@@ -9,7 +9,7 @@ require([
 ], function (
   io, preloadjs, createjs,
   Publisher,
-  UserModel, UserView, UserCtrl,
+  AuthModel, AuthView, AuthCtrl,
   BackModel, BackView,
   GameModel, GameView, GameCtrl,
   ShipModel,
@@ -62,24 +62,24 @@ require([
 
     // авторизация пользователя
     createUser: function () {
-      var userModel
-        , userView
-        , userCtrl;
+      var authModel
+        , authView
+        , authCtrl;
 
-      userModel = new UserModel();
-      userView = new UserView(userModel, {
+      authModel = new AuthModel();
+      authView = new AuthView(authModel, {
         auth: document.getElementById('auth'),
         name: document.getElementById('auth-name'),
         colors: document.getElementsByName('auth-color'),
         enter: document.getElementById('auth-enter')
       });
-      userCtrl = new UserCtrl(userModel, userView);
+      authCtrl = new AuthCtrl(authModel, authView);
 
-      userView.show();
+      authView.show();
 
       // при поступлении новых данных:
       // - отправка данных на сервер
-      userModel.publisher.on('data', function (data) {
+      authModel.publisher.on('data', function (data) {
         V.sendData('user', data);
         // имя и цвет
         // в переменные(переменные используются!)

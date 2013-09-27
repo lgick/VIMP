@@ -1,27 +1,27 @@
 define([], function () {
-  // Singleton UserCtrl
-  var userCtrl;
+  // Singleton AuthCtrl
+  var authCtrl;
 
-  function UserCtrl(model, view) {
-    if (userCtrl) {
-      return userCtrl;
+  function AuthCtrl(model, view) {
+    if (authCtrl) {
+      return authCtrl;
     }
 
-    userCtrl = this;
+    authCtrl = this;
 
     this._model = model;
     this._view = view;
     this._vPublic = view.publisher;
 
-    this._vPublic.on('auth', 'validate', userCtrl);
+    this._vPublic.on('auth', 'validate', authCtrl);
   }
 
-  UserCtrl.prototype = {
+  AuthCtrl.prototype = {
     // читает форму
     validate: function (data) {
       this._model.validate(data);
     }
   };
 
-  return UserCtrl;
+  return AuthCtrl;
 });

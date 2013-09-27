@@ -1,18 +1,18 @@
 define(['Publisher'], function (Publisher) {
-  // Singleton UserModel
-  var userModel;
+  // Singleton AuthModel
+  var authModel;
 
-  function UserModel() {
-    if (userModel) {
-      return userModel;
+  function AuthModel() {
+    if (authModel) {
+      return authModel;
     }
 
-    userModel = this;
+    authModel = this;
 
     this.publisher = new Publisher();
   }
 
-  UserModel.prototype = {
+  AuthModel.prototype = {
     // проверка имени
     validate: function (data) {
       var name = data.name
@@ -31,5 +31,5 @@ define(['Publisher'], function (Publisher) {
     }
   };
 
-  return UserModel;
+  return AuthModel;
 });

@@ -1,13 +1,13 @@
 define(['Publisher'], function (Publisher) {
-  // Singleton UserView
-  var userView;
+  // Singleton AuthView
+  var authView;
 
-  function UserView(model, elements) {
-    if (userView) {
-      return userView;
+  function AuthView(model, elements) {
+    if (authView) {
+      return authView;
     }
 
-    userView = this;
+    authView = this;
 
     this._mPublic = model.publisher;
     this._auth = elements.auth;
@@ -18,7 +18,7 @@ define(['Publisher'], function (Publisher) {
     this.publisher = new Publisher();
 
     this._enter.onclick = function() {
-      var colors = userView._colors
+      var colors = authView._colors
         , i = 0
         , len = colors.length
         , color;
@@ -29,17 +29,17 @@ define(['Publisher'], function (Publisher) {
         }
       }
 
-      userView.publisher.emit('auth', {
-        name: userView._name.value,
+      authView.publisher.emit('auth', {
+        name: authView._name.value,
         color: color
       });
     };
 
-    this._mPublic.on('data', 'hide', userView);
-    this._mPublic.on('error', 'clear', userView);
+    this._mPublic.on('data', 'hide', authView);
+    this._mPublic.on('error', 'clear', authView);
   }
 
-  UserView.prototype = {
+  AuthView.prototype = {
     // показывает форму
     show: function () {
       this._auth.style.display = 'block';
@@ -54,5 +54,5 @@ define(['Publisher'], function (Publisher) {
     }
   };
 
-  return UserView;
+  return AuthView;
 });
