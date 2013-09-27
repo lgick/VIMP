@@ -16,22 +16,23 @@ define([
 
     gameView = this;
 
-    this.key = new Publisher();
-    this._model = model.publisher;
+    this._mPublic = model.publisher;
     this._stage = new Stage(params.stage);
+    this._window = params.window;
     this._width = params.width;
     this._height = params.height;
+    this.publisher = new Publisher();
 
-    params.window.onkeydown = function (e) {
-      gameView.key.emit('down', e.keyCode);
+    this._window.onkeydown = function (e) {
+      gameView.publisher.emit('down', e.keyCode);
     };
-    params.window.onkeyup = function (e) {
-      gameView.key.emit('up', e.keyCode);
+    this._window.onkeyup = function (e) {
+      gameView.publisher.emit('up', e.keyCode);
     };
 
-    this._model.on('create', 'add', gameView);
-    this._model.on('remove', 'remove', gameView);
-    this._model.on('clear', 'clear', gameView);
+    this._mPublic.on('create', 'add', gameView);
+    this._mPublic.on('remove', 'remove', gameView);
+    this._mPublic.on('clear', 'clear', gameView);
   }
 
   GameView.prototype = {

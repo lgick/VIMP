@@ -9,12 +9,12 @@ define([], function () {
 
     gameCtrl = this;
 
-    this.cmds = [];
-    this._view = view;
+    this._vPublic = view.publisher;
     this._keys = keys;
+    this.cmds = [];
 
-    this._view.key.on('down', 'add', gameCtrl);
-    this._view.key.on('up', 'remove', gameCtrl);
+    this._vPublic.on('down', 'add', gameCtrl);
+    this._vPublic.on('up', 'remove', gameCtrl);
   }
 
   GameCtrl.prototype = {
