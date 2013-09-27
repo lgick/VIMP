@@ -23,6 +23,8 @@ define(['createjs'], function(createjs) {
   RadarView.prototype = {
     // создает экземпляр на полотне
     add: function (player) {
+      this._stage.scaleX = player.scale;
+      this._stage.scaleY = player.scale;
       this._stage.addChild(player);
     },
     // обновляет полотно

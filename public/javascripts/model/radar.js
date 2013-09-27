@@ -31,8 +31,12 @@ define([
       player.x = data.x;
       player.y = data.y;
       player.rotation = data.rotation;
+
+      // все модели на радаре увеличены в 20 раз
       player.scaleX = 20;
       player.scaleY = 20;
+
+      player.scale = data.scale;
 
       g = player.graphics;
 
@@ -53,6 +57,7 @@ define([
       p.x = data.x;
       p.y = data.y;
       p.rotation = data.rotation;
+      p.scale = data.scale;
     },
     // удаляет объект
     remove: function (name) {
