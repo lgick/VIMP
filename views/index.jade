@@ -8,29 +8,37 @@ block content
     div.prompt
       h2= 'hallo sweet user&& Welkome to VIMP!'
       div
-        span= 'Please name (a-zA-Z0-9_):'
-        input#auth-name(type='text', maxlength='15', placeholder='Bow_e')
-      div
-        span= 'Please your color:'
-        br
-        span.red= 'red'
-        input(type='radio', name='auth-color', value='red', checked)
-        br
-        span.orange= 'orange'
-        input(type='radio', name='auth-color', value='orange')
-        br
-        span.yellow= 'yellow'
-        input(type='radio', name='auth-color', value='yellow')
-        br
-        span.green= 'green'
-        input(type='radio', name='auth-color', value='green')
-        br
-        span.cyan= 'cyan'
-        input(type='radio', name='auth-color', value='cyan')
-        br
-        span.blue= 'blue'
-        input(type='radio', name='auth-color', value='blue')
-        br
-        span.violet= 'violet'
-        input(type='radio', name='auth-color', value='violet')
-      button#auth-enter= 'Enter'
+        span= 'Please name:'
+        input#auth-name(type='text', maxlength='15', placeholder='Tom Sawyer')
+      div#auth-colors
+        div.color-select
+          span= 'Please your color:'
+          br
+          input(type='radio', name='auth-color', value='#ff0000')
+          span.red= 'red'
+          br
+          input(type='radio', name='auth-color', value='#ffa500')
+          span.orange= 'orange'
+          br
+          input(type='radio', name='auth-color', value='#ffff00')
+          span.yellow= 'yellow'
+          br
+          input(type='radio', name='auth-color', value='#008000')
+          span.green= 'green'
+          br
+          input(type='radio', name='auth-color', value='#00ffff')
+          span.cyan= 'cyan'
+          br
+          input(type='radio', name='auth-color', value='#0000ff')
+          span.blue= 'blue'
+          br
+          input(type='radio', name='auth-color', value='#ee82ee')
+          span.violet= 'violet'
+        div.color-custom
+          span= '.. or white it (format: #RrGgBb):'
+          br
+          input#auth-color-radio(type='radio', name='auth-color', value='#dd2030')
+          input#auth-color-input(type='text', maxlength='7', value='#dd2030')
+        canvas#auth-color-preview(width='150', height='80')
+      div#auth-error
+      input#auth-enter(type='button', autofocus, value='Enter')

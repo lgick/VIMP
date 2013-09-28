@@ -17,6 +17,8 @@ body {
   background-color: #000;
   color: #ccc;
   font-family: "Lucida Grande", Helvetica, Arial, Verdana, sans-serif;
+  font-size: 12px;
+  line-height: 16px;
 }
 
 #logo {
@@ -69,7 +71,8 @@ body {
 
 #auth .prompt {
   width: 500px;
-  margin: 50px auto;
+  height: 330px;
+  margin: 10px auto;
   border: 1px solid #fff;
   padding: 15px;
 }
@@ -78,32 +81,65 @@ body {
   padding: 10px;
 }
 
-#auth .prompt .red {
-  color: red;
+#auth .prompt #auth-name {
+  width: 112px;
+  margin-left: 15px;
 }
 
-#auth .prompt .orange {
-  color: orange;
+#auth-colors .color-select {
+  width: 153px;
+  float: left;
 }
 
-#auth .prompt .yellow {
-  color: yellow;
+#auth-colors .color-select .red {
+  color: #ff0000;
 }
 
-#auth .prompt .green {
-  color: green;
+#auth-colors .color-select .orange {
+  color: #ffa500;
 }
 
-#auth .prompt .cyan {
-  color: cyan;
+#auth-colors .color-select .yellow {
+  color: #ffff00;
 }
 
-#auth .prompt .blue {
-  color: blue;
+#auth-colors .color-select .green {
+  color: #008000;
 }
 
-#auth .prompt .violet {
-  color: violet;
+#auth-colors .color-select .cyan {
+  color: #00ffff;
+}
+
+#auth-colors .color-select .blue {
+  color: #0000ff;
+}
+
+#auth-colors .color-select .violet {
+  color: #ee82ee;
+}
+
+#auth-colors .color-custom {
+  width: 187px;
+  height: 57px;
+  margin-left: 153px;
+}
+
+#auth-colors .color-custom #auth-color-input {
+  margin-top: 13px;
+  width: 123px;
+}
+
+#auth-colors #auth-color-preview {
+  border: 1px solid #ffffff;
+}
+
+#auth .prompt #auth-error {
+  color: #ff0000;
+  font-size: 12px;
+  line-height: 15px;
+  font-weight: bold;
+  height: 30px;
 }
 
 #auth .prompt #auth-enter {

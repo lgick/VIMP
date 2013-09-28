@@ -70,16 +70,27 @@ require([
       authView = new AuthView(authModel, {
         auth: document.getElementById('auth'),
         name: document.getElementById('auth-name'),
-        colors: document.getElementsByName('auth-color'),
+        colorsSelect: document.getElementById('auth-colors'),
+        colorRadio: document.getElementById('auth-color-radio'),
+        colorInput: document.getElementById('auth-color-input'),
+        colorPreview: document.getElementById('auth-color-preview'),
+        error: document.getElementById('auth-error'),
         enter: document.getElementById('auth-enter')
       });
       authCtrl = new AuthCtrl(authModel, authView);
 
-      authView.show();
+      if (userName && userColor) {
+        authCtrl.updateData({
+          name: userName,
+          color: userColor
+        });
+      }
+
+      authView.showAuth();
 
       // при поступлении новых данных:
       // - отправка данных на сервер
-      authModel.publisher.on('data', function (data) {
+      authModel.publisher.on('ready', function (data) {
         V.sendData('user', data);
         // имя и цвет
         // в переменные(переменные используются!)
@@ -90,16 +101,7 @@ require([
     },
   };
 
-  // проверка наличия данных
-  // для авторизации
-  if (!userName || !userColor) {
-    V.createUser();
-  } else {
-    V.sendData('user', {
-      name: userName,
-      color: userColor
-    });
-  }
+  V.createUser();
 
 // ДАННЫЕ С СЕРВЕРА
 
