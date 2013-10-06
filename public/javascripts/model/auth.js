@@ -108,6 +108,10 @@ define([
     color: function (color) {
       var regExp = /^#(?:[0-9a-fA-F]{3}){1,2}$/;
       return regExp.test(color);
+    },
+    model: function (model) {
+      var regExp = /Ship/;
+      return regExp.test(model);
     }
   };
 

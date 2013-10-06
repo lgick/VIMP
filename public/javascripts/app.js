@@ -89,6 +89,9 @@ require([
     authModel.validate(
       {name: 'colorB', type: 'color', value: colorB}
     );
+    authModel.validate(
+      {name: 'model', type: 'model', value: 'Ship'}
+    );
 
     authModel.createModels({
       ship: {

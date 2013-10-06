@@ -77,7 +77,7 @@ define([
     // форма заполнена
     this._enter.onclick = function() {
       authView.publisher.emit('ready', [
-        'name', 'colorA', 'colorB'
+        'name', 'colorA', 'colorB', 'model'
       ]);
     };
 
