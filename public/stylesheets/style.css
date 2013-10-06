@@ -86,6 +86,10 @@ body {
   margin-left: 15px;
 }
 
+#auth-colors {
+  height: 155px;
+}
+
 #auth-colors .color-select {
   width: 153px;
   float: left;
@@ -131,10 +135,16 @@ body {
 }
 
 #auth-colors #auth-color-preview {
-  border: 1px solid #ffffff;
+  margin-left: 25px;
+}
+
+#auth-color-switcher {
+  float: right;
+  width: 112px;
 }
 
 #auth .prompt #auth-error {
+  clear: both;
   color: #ff0000;
   font-size: 12px;
   line-height: 15px;
@@ -143,6 +153,7 @@ body {
 }
 
 #auth .prompt #auth-enter {
+  clear: both;
   display: block;
   margin: auto;
 }

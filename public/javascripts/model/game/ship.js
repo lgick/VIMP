@@ -9,22 +9,6 @@ define(['createjs'], function (createjs) {
     }
   }
 
-  // обновляет функционал экземпляра
-  Ship.update = function (player, data) {
-    player.x = data.x;
-    player.y = data.y;
-    player.rotation = data.rotation;
-    player.scale = data.scale;
-
-    if (data.flame) {
-      player.makeFlameOn();
-    } else {
-      player.makeFlameOff();
-    }
-
-    return player;
-  };
-
   p = Ship.prototype = new Container();
   p.Container_initialize = p.initialize;
 
@@ -39,29 +23,33 @@ define(['createjs'], function (createjs) {
     this.addChild(this.flame);
 
     this.name = params.name || 'Bot';
-    this.color = params.color || '#ffffff';
-    this.scale = params.scale || 100;
-    this.model = params.model || 'tank';
+    this.colorA = params.colorA || '#ffffff';
+    this.colorB = params.colorB || '#333333';
+    this.scale = params.scale || 1;
+    this.scaleX = params.scaleX || 1;
+    this.scaleY = params.scaleY || 1;
+    this.model = params.model || 'Ship';
     this.score = params.score || 10000;
     this.status = params.status || 'alive';
     this.x = params.x || 0;
     this.y = params.y || 0;
     this.rotation = params.rotation || 0;
 
-    this.makeBody();
-    this.makeFlameOff();
+    this.create();
   };
 
   // создание тела
-  p.makeBody = function () {
-    var g = this.body.graphics
-      , color = this.color;
+  p.create = function (colorA, colorB) {
+    var g = this.body.graphics;
+
+    this.colorA = colorA ? colorA : this.colorA;
+    this.colorB = colorB ? colorB : this.colorB;
 
     g.clear();
 
     g.setStrokeStyle(1);
     g.beginStroke('#cccccc');
-    g.beginFill(color);
+    g.beginFill(this.colorA);
     g.moveTo(0, 13);
     g.lineTo(6, -1);
     g.lineTo(10, -2);
@@ -84,7 +72,7 @@ define(['createjs'], function (createjs) {
     // левое крыло
     g.setStrokeStyle(1);
     g.beginStroke('#cccccc');
-    g.beginFill(color);
+    g.beginFill(this.colorB);
     g.moveTo(-10, -2);
     g.lineTo(-18, -7);
     g.lineTo(-16, -15);
@@ -94,35 +82,32 @@ define(['createjs'], function (createjs) {
     // правое крыло
     g.setStrokeStyle(1);
     g.beginStroke('#cccccc');
-    g.beginFill(color);
+    g.beginFill(this.colorB);
     g.moveTo(10, -2);
     g.lineTo(18, -7);
     g.lineTo(16, -15);
     g.lineTo(12, -15);
     g.lineTo(10, -6);
     g.closePath();
+
+    this._createFlameOff();
   };
 
-  p.makeFlameOn = function () {
-    var g = this.flame.graphics;
+  // обновляет функционал экземпляра
+  p.update = function (data) {
+    this.x = data.x;
+    this.y = data.y;
+    this.rotation = data.rotation;
+    this.scale = data.scale;
 
-    g.clear();
-
-    g.setStrokeStyle(1);
-    g.beginStroke('blue');
-    g.beginFill('orange');
-    g.moveTo(-6, -13);
-    g.lineTo(-4, -15);
-    g.lineTo(-2, -13);
-    g.lineTo(0, -19);
-    g.lineTo(2, -13);
-    g.lineTo(4, -15);
-    g.lineTo(6, -13);
-    g.lineTo(0, -9);
-    g.closePath();
+    if (data.flame) {
+      this._createFlameOn();
+    } else {
+      this._createFlameOff();
+    }
   };
 
-  p.makeFlameOff = function () {
+  p._createFlameOff = function () {
     var g = this.flame.graphics;
 
     g.clear();
@@ -134,6 +119,25 @@ define(['createjs'], function (createjs) {
     g.lineTo(-4, -15);
     g.lineTo(-2, -13);
     g.lineTo(0, -15);
+    g.lineTo(2, -13);
+    g.lineTo(4, -15);
+    g.lineTo(6, -13);
+    g.lineTo(0, -9);
+    g.closePath();
+  };
+
+  p._createFlameOn = function () {
+    var g = this.flame.graphics;
+
+    g.clear();
+
+    g.setStrokeStyle(1);
+    g.beginStroke('blue');
+    g.beginFill('orange');
+    g.moveTo(-6, -13);
+    g.lineTo(-4, -15);
+    g.lineTo(-2, -13);
+    g.lineTo(0, -19);
     g.lineTo(2, -13);
     g.lineTo(4, -15);
     g.lineTo(6, -13);

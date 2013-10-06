@@ -1,4 +1,10 @@
-define(['Publisher'], function (Publisher) {
+define([
+  'Publisher',
+  'GameModel'
+], function (
+  Publisher,
+  GameModel
+) {
   // Singleton AuthModel
   var authModel;
 
@@ -10,47 +16,49 @@ define(['Publisher'], function (Publisher) {
     authModel = this;
 
     this._data = {};
-
+    this._models = {};
     this.publisher = new Publisher();
   }
 
   // проверка данных
   AuthModel.prototype.validate = function (data) {
-    var type = data.type
+    var name = data.name
+      , type = data.type
       , value = data.value
       , result;
 
     result = AuthModel.validate[type](value);
 
     if (result) {
-      this._data[type] = value;
+      this._data[name] = value;
     } else {
-      value = this._data[type] || '';
+      value = this._data[name] || '';
     }
 
     this.publisher.emit('update', {
+      name: name,
       type: type,
       value: value
     });
   };
 
-  // проверка по запрашиваемым типам
+  // проверка данных по именам
   // Возвращает готовый объект проверенных данных
   // или в случае неудачи
   // массив багов
-  AuthModel.prototype.verify = function (types) {
+  AuthModel.prototype.verify = function (names) {
     var i = 0
-      , len = types.length
+      , len = names.length
       , data = {}
       , bugs = [];
 
     for (; i < len; i += 1) {
-      if (this._data[types[i]]) {
-        data[types[i]] = this._data[types[i]];
+      if (this._data[names[i]]) {
+        data[names[i]] = this._data[names[i]];
       } else {
         bugs.push({
-          type: types[i],
-          value: this._data[types[i]]
+          name: names[i],
+          value: this._data[names[i]]
         });
       }
     }
@@ -62,6 +70,36 @@ define(['Publisher'], function (Publisher) {
     }
   };
 
+  // создание моделей игроков
+  AuthModel.prototype.createModels = function (data) {
+    for (var i in data) {
+      if (data.hasOwnProperty(i)) {
+        this._models[data[i].model] = new GameModel(
+          data[i].model, data[i]
+        );
+      }
+    }
+
+    this.publisher.emit('models', this._models);
+  };
+
+  // обновляет модели с актуальным цветом
+  AuthModel.prototype.updateModels = function () {
+    var colorA = this._data['colorA']
+      , colorB = this._data['colorB'];
+
+    if (colorA && colorB) {
+      for (var i in this._models) {
+        if (this._models.hasOwnProperty(i)) {
+          this._models[i].create(colorA, colorB);
+        }
+      }
+    }
+
+    this.publisher.emit('upModels');
+  };
+
+  // шаблоны для проверки данных
   AuthModel.validate = {
     name: function (name) {
       var regExp = /^[a-zA-Z]([\w\s#]{0,13})[\w]{1}$/;

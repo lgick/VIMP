@@ -1,32 +1,28 @@
 define([
-  'Publisher',
+  'BackModel',
+  'RadarModel',
   'ShipModel'
 ], function (
-  Publisher,
+  Back,
+  Radar,
   Ship
 ) {
   // Фабрика для строительства объектов игры
-  // Объекты хранятся в переменной GameModel._data
-  // TODO:
-  // Сейчас данные имеют вид:
-  // this._data[имя экземпляра]
-  // Лучше строить с учетом названия конструктора:
-  // this._data[название конструктора][имя экземпляра]
-  var gameModel;
-
-  // Singleton GameModel
-  function GameModel() {
-    if (gameModel) {
-      return gameModel;
+  // создает объект игры указанного типа
+  // по заданным параметрам
+  function GameModel(type, params) {
+    if (typeof GameModel[type] !== 'function') {
+      throw {
+        name: 'error',
+        message: type + ' not valid'
+      }
     }
 
-    gameModel = this;
-
-    this._data = {};
-    this.publisher = new Publisher();
+    return new GameModel[type](params);
   }
 
   // наделяет конструкторы дополнительными методами
+  // каждый добавленный конструктор будет их иметь
   GameModel._add = function (name, object) {
     var addons = GameModel.prototype._addons
       , i;
@@ -47,47 +43,12 @@ define([
     },
     getColor: function () {
       console.log(this.color);
-    },
-    getName: function () {
-      console.log(this.name);
     }
   };
 
-  // Factory Method GameModel.create()
-  GameModel.prototype.create = function (data) {
-    var name = data.name
-      , model = data.model;
-
-    this._data[name] = new GameModel[model](data);
-    this.publisher.emit('create', this._data[name]);
-  };
-
-  // обновляет данные игрока
-  // с помощью метода update конструктора
-  // (этот метод отвечает за функционал
-  // данного конструктора)
-  GameModel.prototype.update = function (data) {
-    var name = data.name
-      , model = data.model;
-
-    GameModel[model].update(this._data[name], data);
-  };
-
-  // удаляет игрока
-  GameModel.prototype.remove = function (name) {
-    var player = this._data[name];
-
-    delete this._data[name];
-    this.publisher.emit('remove', player);
-  };
-
-  // удаляет всех игроков всех типов
-  GameModel.prototype.clear = function () {
-    this._data = {};
-    this.publisher.emit('clear');
-  };
-
   // конструкторы
+  GameModel._add('Back', Back);
+  GameModel._add('Radar', Radar);
   GameModel._add('Ship', Ship);
 
   return GameModel;

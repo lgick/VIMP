@@ -13,22 +13,22 @@ html
           createjs:    'lib/easeljs-NEXT.min',
 
           Publisher:   'pattern/publisher',
+          Mediator:    'pattern/mediator',
+
+          AuthView:    'view/auth',
+          UserView:    'view/user',
+          GameView:    'view/game',
 
           AuthModel:   'model/auth',
-          AuthView:    'view/auth',
-          AuthCtrl:    'controller/auth',
-
-          BackModel:   'model/back',
-          BackView:    'view/back',
-
+          UserModel:   'model/user',
           GameModel:   'model/game',
-          GameView:    'view/game',
-          GameCtrl:    'controller/game',
 
-          ShipModel:   'model/game/ship',
+          AuthCtrl:    'controller/auth',
+          UserCtrl:    'controller/user',
 
-          RadarModel:  'model/radar',
-          RadarView:   'view/radar'
+          BackModel:   'model/game/back',
+          RadarModel:  'model/game/radar',
+          ShipModel:   'model/game/ship'
         },
         shim: {
           'createjs': {

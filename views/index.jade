@@ -37,8 +37,17 @@ block content
         div.color-custom
           span= '.. or white it (format: #RrGgBb):'
           br
-          input#auth-color-radio(type='radio', name='auth-color', value='#dd2030')
-          input#auth-color-input(type='text', maxlength='7', value='#dd2030')
-        canvas#auth-color-preview(width='150', height='80')
+          input#auth-color-radio(type='radio', name='auth-color')
+          input#auth-color-input(type='text', name='auth-color', maxlength='7')
+        div#auth-color-switcher
+          span= 'Color for:'
+          br
+          input(type='radio', name='auth-type', value='colorA', checked)
+          span= 'body'
+          br
+          input(type='radio', name='auth-type', value='colorB')
+          span= 'parts'
+          br
+        canvas#auth-color-preview(width='120', height='80')
       div#auth-error
       input#auth-enter(type='button', autofocus, value='Enter')

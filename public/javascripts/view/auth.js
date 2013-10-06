@@ -1,4 +1,10 @@
-define(['Publisher'], function (Publisher) {
+define([
+  'Publisher',
+  'GameView'
+], function (
+  Publisher,
+  GameView
+) {
   // Singleton AuthView
   var authView;
 
@@ -17,15 +23,23 @@ define(['Publisher'], function (Publisher) {
     this._colorRadio = elements.colorRadio;
     this._colorInput = elements.colorInput;
     this._colorPreview = elements.colorPreview;
+    // TODO: this._colorType нарушает структуру MVC,
+    // но существенно упрощает код
+    this._colorType = elements.colorType;
     this._error = elements.error;
     this._enter = elements.enter;
 
+
     this.publisher = new Publisher();
+
+    this.initialize(this._colorPreview);
 
     // изменение имени
     this._name.onchange = function () {
       authView.publisher.emit('change', {
-        name: authView._name.value
+        name: 'name',
+        type: 'name',
+        value: authView._name.value
       });
     };
 
@@ -35,75 +49,112 @@ define(['Publisher'], function (Publisher) {
                   authView._colorRadio.value;
 
       authView.publisher.emit('focus', {
-        color: color
+        name: authView._colorType,
+        type: 'color',
+        value: color
       });
     };
 
     // действие с радиокнопками или полем ввода цвета
     this._colorsSelect.onchange = function (e) {
-      if (e.target.tagName !== 'INPUT') {
-        return;
+      if (e.target.name === 'auth-color') {
+        authView.publisher.emit('change', {
+          name: authView._colorType,
+          type: 'color',
+          value: e.target.value
+        });
       }
 
-      authView.publisher.emit('change', {
-        color: e.target.value
-      });
+      if (e.target.name === 'auth-type') {
+        authView.publisher.emit('type', {
+          name: e.target.value,
+          type: 'color',
+          value: ''
+        });
+      }
     };
 
     // форма заполнена
     this._enter.onclick = function() {
       authView.publisher.emit('ready', [
-        'name', 'color'
+        'name', 'colorA', 'colorB'
       ]);
     };
 
-    this._mPublic.on('update', 'update', authView);
+    this._mPublic.on('update', 'updateForm', authView);
     this._mPublic.on('error', 'readErr', authView);
+    this._mPublic.on('models', 'addModels', authView);
+    this._mPublic.on('upModels', 'update', authView);
     this._mPublic.on('ready', 'hideAuth', authView);
   }
 
-  AuthView.prototype = {
-    // показывает форму
-    showAuth: function () {
-      this._auth.style.display = 'block';
-    },
-    // скрывает форму
-    hideAuth: function () {
-      this._auth.style.display = 'none';
-    },
-    // пользовательский ввод цвета
-    switchInput: function (color) {
-      this._colorRadio.checked = true;
-      this._colorInput.value = color;
-    },
-    // обрабатывает ошибки
-    readErr: function (bugs) {
-      var i = 0
-        , len = bugs.length
-        , message = '';
+  // наследование прототипа GameView
+  AuthView.prototype = GameView.prototype;
 
-      for (; i < len; i += 1) {
-        message += 'Please ' + bugs[i].type + '!<br>';
+  // показывает форму
+  AuthView.prototype.showAuth = function () {
+    this._auth.style.display = 'block';
+  };
+
+  // скрывает форму
+  AuthView.prototype.hideAuth = function () {
+    this._auth.style.display = 'none';
+  };
+
+  // пользовательский ввод цвета
+  AuthView.prototype.switchInput = function (color) {
+    this._colorRadio.checked = true;
+    this._colorInput.value = color;
+  };
+
+  // переключает значение типа цвета
+  AuthView.prototype.switchType = function (type) {
+    this._colorType = type;
+  };
+
+  // добавляет модели игроков
+  AuthView.prototype.addModels = function (data) {
+    for (var i in data) {
+      if (data.hasOwnProperty(i)) {
+        this.add(data[i]);
       }
+    }
 
-      this._error.innerHTML = message;
-    },
-    // обновляет форму
-    update: function (data) {
-      var type = data.type
-        , value = data.value;
+    this.publisher.emit('color');
+  };
 
-      this._error.innerHTML = '';
+  // обрабатывает ошибки
+  AuthView.prototype.readErr = function (bugs) {
+    var i = 0
+      , len = bugs.length
+      , message = '';
 
-      if (type === 'color') {
-        this._colorPreview.style.background = value;
+    for (; i < len; i += 1) {
+      message += 'Please ' + bugs[i].name + '!<br>';
+    }
+
+    this._error.innerHTML = message;
+  };
+
+  // обновляет форму
+  AuthView.prototype.updateForm = function (data) {
+    var name = data.name
+      , type = data.type
+      , value = data.value;
+
+    this._error.innerHTML = '';
+
+    if (type === 'color') {
+      if (name === this._colorType) {
         this._colorInput.value = value;
         this._colorRadio.value = value;
-      }
 
-      if (type === 'name') {
-        this._name.value = value;
+        this.publisher.emit('color');
       }
+    }
+
+    if (type === 'name') {
+      this._name.value = value;
     }
   };
 

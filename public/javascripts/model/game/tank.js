@@ -9,17 +9,6 @@ define(['createjs'], function (createjs) {
     }
   }
 
-  // обновляет функционал экземпляра
-  Tank.update = function (player, data) {
-    player.x = data.x;
-    player.y = data.y;
-    player.rotation = data.rotation;
-    player.scale = data.scale;
-    player.gun.rotation = data.gunRotation;
-
-    return player;
-  };
-
   p = Tank.prototype = new Container();
   p.Container_initialize = p.initialize;
 
@@ -34,9 +23,12 @@ define(['createjs'], function (createjs) {
     this.addChild(this.gun);
 
     this.name = params.name || 'Bot';
-    this.color = params.color || '#ffffff';
+    this.colorA = params.colorA || '#ffffff';
+    this.colorB = params.colorB || '#333333';
     this.scale = params.scale || 100;
-    this.model = params.model || 'tank';
+    this.scaleX = params.scaleX || 1;
+    this.scaleY = params.scaleY || 1;
+    this.model = params.model || 'Tank';
     this.score = params.score || 10000;
     this.status = params.status || 'alive';
     this.x = params.x || 0;
@@ -45,35 +37,47 @@ define(['createjs'], function (createjs) {
 
     this.gun.rotation = params.gunRotation || 0;
 
-    this.makeBody();
-    this.makeGun();
+    this.create();
   };
 
   // создание тела
-  p.makeBody = function () {
+  p.create = function (colorA, colorB) {
     var g = this.body.graphics;
+
+    this.colorA = colorA ? colorA : this.colorA;
+    this.colorB = colorB ? colorB : this.colorB;
 
     g.clear();
 
     g.setStrokeStyle(1);
     g.beginStroke('#cccccc');
-    g.beginFill('#333333');
+    g.beginFill(this.colorA);
     g.moveTo(-18, 22);
     g.lineTo(-18, -26);
     g.lineTo(18, -26);
     g.lineTo(18, 22);
     g.closePath();
+
+    this._createGun(this.colorB);
   };
 
-  // создание пушки
-  p.makeGun = function () {
+  // обновляет функционал экземпляра
+  p.update = function (data) {
+    this.x = data.x;
+    this.y = data.y;
+    this.rotation = data.rotation;
+    this.scale = data.scale;
+    this.gun.rotation = data.gunRotation;
+  };
+
+  p._createGun = function (colorB) {
     var g = this.gun.graphics;
 
     g.clear();
 
     g.setStrokeStyle(1);
     g.beginStroke('#cccccc');
-    g.beginFill(this.color);
+    g.beginFill(colorB);
     g.moveTo(-5, 16);
     g.lineTo(-12, 5);
     g.lineTo(-12, -5);

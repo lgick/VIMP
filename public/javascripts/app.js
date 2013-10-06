@@ -2,24 +2,23 @@ require([
   'io', 'preloadjs', 'createjs',
   'Publisher',
   'AuthModel', 'AuthView', 'AuthCtrl',
-  'BackModel', 'BackView',
-  'GameModel', 'GameView', 'GameCtrl',
-  'ShipModel',
-  'RadarModel', 'RadarView'
+  'UserModel', 'UserView', 'UserCtrl',
+  'GameModel', 'GameView',
+  'BackModel', 'ShipModel', 'RadarModel'
 ], function (
   io, preloadjs, createjs,
   Publisher,
   AuthModel, AuthView, AuthCtrl,
-  BackModel, BackView,
-  GameModel, GameView, GameCtrl,
-  ShipModel,
-  RadarModel, RadarView
+  UserModel, UserView, UserCtrl,
+  GameModel, GameView,
+  BackModel, ShipModel, RadarModel
 ) {
 
   var window = this
     , localStorage = window.localStorage
     , userName = localStorage.userName
-    , userColor = localStorage.userColor
+    , userColorA = localStorage.userColorA
+    , userColorB = localStorage.userColorB
 
     , document = window.document
 
@@ -31,6 +30,7 @@ require([
     , CANVAS_VIMP_ID = 'vimp'
     , CANVAS_RADAR_ID = 'radar'
     , RADAR_PROPORTION = 0.15
+    , RADAR_SCALE_RATIO = 20
 
     , loader
     , manifest = [
@@ -42,70 +42,85 @@ require([
       }
     ]
 
+    , player = {}
+    , radar = {}
+
     , backModel = null  // модель фона
     , backView = null   // представление фона
 
-    , gameModel = null  // модель
     , gameView = null   // представление
     , gameCtrl = null   // контроллер
 
     , radarModel = null // модель радара
     , radarView = null  // представление радара
+  ;
 
-    , V;
+  // авторизация пользователя
+  (function () {
+    var authModel
+      , authView
+      , authCtrl
+      , name = userName || ''
+      , colorA = userColorA || '#333333'
+      , colorB = userColorB || '#444444';
 
-  V = {
-    // отправляет данные на сервер
-    sendData: function (tag, data) {
-      socket.emit(tag, data);
-    },
+    authModel = new AuthModel();
+    authView = new AuthView(authModel, {
+      auth: document.getElementById('auth'),
+      name: document.getElementById('auth-name'),
+      colorsSelect: document.getElementById('auth-colors'),
+      colorRadio: document.getElementById('auth-color-radio'),
+      colorInput: document.getElementById('auth-color-input'),
+      colorPreview: document.getElementById('auth-color-preview'),
+      // TODO: colorType нарушает структуру MVC,
+      // но существенно упрощает код
+      colorType: 'colorA',
+      error: document.getElementById('auth-error'),
+      enter: document.getElementById('auth-enter')
+    });
+    authCtrl = new AuthCtrl(authModel, authView);
 
-    // авторизация пользователя
-    createUser: function () {
-      var authModel
-        , authView
-        , authCtrl;
+    authModel.validate(
+      {name: 'name', type: 'name', value: name}
+    );
+    authModel.validate(
+      {name: 'colorA', type: 'color', value: colorA}
+    );
+    authModel.validate(
+      {name: 'colorB', type: 'color', value: colorB}
+    );
 
-      authModel = new AuthModel();
-      authView = new AuthView(authModel, {
-        auth: document.getElementById('auth'),
-        name: document.getElementById('auth-name'),
-        colorsSelect: document.getElementById('auth-colors'),
-        colorRadio: document.getElementById('auth-color-radio'),
-        colorInput: document.getElementById('auth-color-input'),
-        colorPreview: document.getElementById('auth-color-preview'),
-        error: document.getElementById('auth-error'),
-        enter: document.getElementById('auth-enter')
-      });
-      authCtrl = new AuthCtrl(authModel, authView);
-
-      if (userName && userColor) {
-        authCtrl.updateData({
-          name: userName,
-          color: userColor
-        });
+    authModel.createModels({
+      ship: {
+        name: 'bot',
+        x: 60,
+        y: 35,
+        scaleX: 2,
+        scaleY: 2,
+        model: 'Ship',
+        rotation: 180,
+        colorA: colorA,
+        colorB: colorB
       }
+    });
 
-      authView.showAuth();
+    authView.showAuth();
 
-      // при поступлении новых данных:
-      // - отправка данных на сервер
-      authModel.publisher.on('ready', function (data) {
-        V.sendData('user', data);
-        // имя и цвет
-        // в переменные(переменные используются!)
-        // и в хранилище
-        userName = localStorage.userName = data.name;
-        userColor = localStorage.userColor = data.color;
-      });
-    },
-  };
-
-  V.createUser();
+    // при поступлении новых данных:
+    // - отправка данных на сервер
+    authModel.publisher.on('ready', function (data) {
+      socket.emit('user', data);
+      // имя и цвет
+      // в переменные(переменные используются!)
+      // и в хранилище
+      userName = localStorage.userName = data.name;
+      userColorA = localStorage.userColorA = data.colorA;
+      userColorB = localStorage.userColorB = data.colorB;
+    });
+  }());
 
 // ДАННЫЕ С СЕРВЕРА
 
-  // подтверждение авторизации
   socket.on('auth', function (data) {
     var emptyArr = false // флаг при отправке пустого массива
       , back = document.getElementById(CANVAS_BACK_ID)
@@ -129,45 +144,35 @@ require([
       // настройка разрешения
       resizeGame();
 
-      backModel = new BackModel();
-      backView = new BackView(backModel, {
-        stage: back
+      // Активация USER
+      var userModel = new UserModel({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      // TODO: присылается с сервера
+        keys: {
+          87: 'forward',
+          83: 'back',
+          65: 'left',
+          68: 'right',
+          72: 'gLeft',
+          74: 'gRight',
+          67: 'gCenter',
+          75: 'fire',
+          80: 'zoomPlus',
+          79: 'zoomMinus',
+          81: 'zoomDefault'
+        }
       });
-
-      gameModel = new GameModel();
-
-      // Активация GameView
-      gameView = new GameView(gameModel, {
-        width: vimp.width,
-        height: vimp.height,
-        stage: vimp,
+      var userView = new UserView(userModel, {
         window: window
       });
+      var userCtrl = new UserCtrl(userModel, userView);
 
-      // активация GameCtrl
-      // TODO: присылается с сервера
-      gameCtrl = new GameCtrl(gameView, {
-        87: 'forward',
-        83: 'back',
-        65: 'left',
-        68: 'right',
-        72: 'gLeft',
-        74: 'gRight',
-        67: 'gCenter',
-        75: 'fire',
-        80: 'zoomPlus',
-        79: 'zoomMinus',
-        81: 'zoomDefault'
-      });
-
-      radarModel = new RadarModel();
+      // Активация GameView
+      gameView = new GameView(vimp);
 
       // Активация RadarView
-      radarView = new RadarView(radarModel, {
-        width: radar.width,
-        height: radar.height,
-        stage: radar
-      });
+      radarView = new GameView(radar);
 
       // загрузка графических файлов
       loader = new LoadQueue(false);
@@ -184,8 +189,7 @@ require([
         // размеру фона
         // То есть фон больше экрана со всех сторон
         // на один размер изображения
-        backModel.create({
-          name: img.id,
+        backModel = new GameModel('Back', {
           image: loader.getResult('background'),
           x: -img.width,
           y: -img.height,
@@ -194,6 +198,10 @@ require([
           stepX: img.width,
           stepY: img.height
         });
+
+        backView = new GameView(back)
+        backView.add(backModel);
+        backView.update();
       }
 
       // отображение игры
@@ -207,13 +215,13 @@ require([
       // поступает пустой массив
       // (но только 1 раз!)
       Ticker.addEventListener("tick", function() {
-        var cmds = gameCtrl.cmds;
+        var cmds = userModel._cmds;
 
         if (cmds.length !== 0) {
-          V.sendData('cmds', cmds);
+          socket.emit('cmds', cmds);
           emptyArr = false;
         } else if (emptyArr === false) {
-          V.sendData('cmds', cmds);
+          socket.emit('cmds', cmds);
           emptyArr = true;
         }
       });
@@ -221,29 +229,27 @@ require([
       // событие при изменении размеров игры
       // TODO: сделать параметры пользователя
       // универсальными
-      window.onresize = function () {
-        resizeGame();
-        backModel.move('background',
-                       gameModel._data[userName].x,
-                       gameModel._data[userName].y,
-                       gameModel._data[userName].scale
-                      );
-        gameView.resize(vimp.width, vimp.height);
-        gameView.update(gameModel._data[userName]);
-        radarView.resize(radar.width, radar.height);
-        radarView.update(radarModel._data[userName]);
-      };
+//      window.onresize = function () {
+//        var user = playerData[userName];
+//
+//        resizeGame();
+//        backModel.move(
+//          'background', user.x, user.y, user.scale
+//        );
+//        gameView.resize(vimp.width, vimp.height);
+//        gameView.update(user);
+//        radarView.resize(radar.width, radar.height);
+//        radarView.update(radarData[userName]);
+//      };
     }
   });
 
-  // данные игры
   socket.on('game', function (data) {
     if (typeof data !== 'object') {
       return;
     }
 
-    var players = gameModel._data
-      , backX
+    var backX
       , backY
       , i;
 
@@ -252,44 +258,86 @@ require([
     // пользователь. Другие игроки не должны влиять на
     // координаты и вызывать этот метод
     // вычисляет данные для фона игры
-    if (data[userName] && players[userName]) {
+    if (data[userName] && player[userName]) {
       var scale = data[userName].scale;
-      backX = players[userName].x - data[userName].x;
-      backY = players[userName].y - data[userName].y;
+      backX = player[userName].x - data[userName].x;
+      backY = player[userName].y - data[userName].y;
 
       // если x или y не равны 0
       if (backX || backY) {
-        backModel.move('background',
-                       backX,
-                       backY,
-                       scale);
+        backModel.update({
+          x: backX,
+          y: backY,
+          scale: scale
+        });
       }
+    }
+
+    // функция получения координат пользователя
+    function cords(user, ratio, width, height) {
+      var ratio = ratio || 1
+        , prop = prop || 1
+        , scale = +(user.scale / ratio).toFixed(10)
+        , data = {}
+        , width = width || window.innerWidth
+        , height = height || window.innerHeight;
+
+      data.x = -(user.x * scale - width / 2);
+      data.y = -(user.y * scale - height / 2);
+
+      // устранение неточности
+      data.x = +(data.x).toFixed(10);
+      data.y = +(data.y).toFixed(10);
+
+      data.scale = scale;
+
+      return data;
     }
 
     for (i in data) {
       if (data.hasOwnProperty(i)) {
 
         // если игрок есть - обновить данные
-        if (players[i]) {
+        if (player[i]) {
           console.log('обновление игрока');
-          gameModel.update(data[i]);
-          radarModel.update(data[i]);
+          player[i].update(data[i]);
+          radar[i].update(data[i]);
 
         // иначе создать игрока
         } else {
           console.log('cоздание игрока');
-          gameModel.create(data[i]);
-          radarModel.create(data[i]);
+          player[i] = new GameModel(
+            data[i].model, data[i]
+          );
+          gameView.add(player[i]);
+
+          radar[i] = new GameModel('Radar', data[i]);
+          radarView.add(radar[i]);
         }
       }
     }
 
     // После обработки данных
     // обновление полотна пользователя
-    gameView.update(gameModel._data[userName]);
+    if (player[userName]) {
+      gameView.update(cords(player[userName]));
+      window.user = player[userName];
+      window.radar = radar[userName];
 
-    // Обновление радара
-    radarView.update(radarModel._data[userName]);
+      // Обновление радара
+      var wRadar = hRadar =
+        window.innerWidth * RADAR_PROPORTION;
+
+      radarView.update(
+        cords(
+          radar[userName],
+          RADAR_SCALE_RATIO,
+          wRadar,
+          hRadar
+      ));
+
+      backView.update();
+    }
+
   });
-
 });
