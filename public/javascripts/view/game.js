@@ -1,4 +1,4 @@
-define(['createjs'], function(createjs) {
+define(['createjs'], function (createjs) {
   // Наследуемый объект
   // для отображения игры в нескольких видах
   var Stage = createjs.Stage;

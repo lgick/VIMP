@@ -29,6 +29,8 @@ define(['createjs'], function (createjs) {
   p.create = function (params) {
     var g = this.graphics;
 
+    g.clear();
+
     g.beginBitmapFill(params.image);
     g.drawRect(
       params.x, params.y, params.width, params.height
