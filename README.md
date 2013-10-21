@@ -4,7 +4,7 @@
   многопользовательская 2D браузерная игра на javascript
 </p>
 
-<img href="https://github.com/hnoe/VIMP/raw/master/public/images/poster.png" alt="poster">
+<img src="https://github.com/hnoe/VIMP/raw/master/public/images/poster.png" alt="poster">
 
 
 
