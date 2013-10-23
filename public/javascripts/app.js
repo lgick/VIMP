@@ -3,14 +3,16 @@ require([
   'Publisher',
   'AuthModel', 'AuthView', 'AuthCtrl',
   'UserModel', 'UserView', 'UserCtrl',
-  'GameModel', 'GameView',
+  'GameModel', 'GameView', 'GameCtrl',
+  'Factory',
   'BackModel', 'ShipModel', 'RadarModel'
 ], function (
   io, preloadjs, createjs,
   Publisher,
   AuthModel, AuthView, AuthCtrl,
   UserModel, UserView, UserCtrl,
-  GameModel, GameView,
+  GameModel, GameView, GameCtrl,
+  Factory,
   BackModel, ShipModel, RadarModel
 ) {
 
@@ -31,6 +33,15 @@ require([
     , CANVAS_RADAR_ID = 'radar'
     , RADAR_PROPORTION = 0.15
     , RADAR_SCALE_RATIO = 20
+    // Частота полной очистки памяти от объектов
+    // Измеряется в количестве обновлений поступивших
+    // с сервера.
+    // Чем выше этот параметр, тем больше будет
+    // объектов храниться в памяти и тем проще будет с
+    // ними работать.
+    // После достижения лимита вся память будет очищена
+    // и объекты будут создаваться заново
+    , LIMIT_ITERATION = 100
 
     , loader
     , manifest = [
@@ -42,17 +53,19 @@ require([
       }
     ]
 
-    , player = {}
-    , radar = {}
+    // число обновлений с сервера
+    , iterations = 0
 
-    , backModel = null  // модель фона
-    , backView = null   // представление фона
+    , back = document.getElementById(CANVAS_BACK_ID)
+    , vimp = document.getElementById(CANVAS_VIMP_ID)
+    , radar = document.getElementById(CANVAS_RADAR_ID)
 
-    , gameView = null   // представление
-    , gameCtrl = null   // контроллер
+    , userModel = null
+    , userView = null
+    , userCtrl = null
 
-    , radarModel = null // модель радара
-    , radarView = null  // представление радара
+    , gameModel = null
+    , gameCtrl = null
   ;
 
   // авторизация пользователя
@@ -122,153 +135,198 @@ require([
     });
   }());
 
+  // стартует игру
+  function startGame() {
+    userModel = new UserModel();
+    userView = new UserView(window);
+    userCtrl = new UserCtrl(userModel, userView);
+
+    // модель игры
+    gameModel = new GameModel({
+      player: {},
+      radar: {},
+      bullet: {},
+      back: {}
+    });
+
+    // контроллер игры (медиатор)
+    gameCtrl = new GameCtrl(gameModel, {
+      back: new GameView(back),
+      vimp: new GameView(vimp),
+      radar: new GameView(radar)
+    });
+  }
+
+  // отрисовывает фон игры
+  function drawBack(width, height) {
+    var img = loader.getItem('background');
+
+    if (img) {
+      // если фон уже есть удаляем его
+      if (gameModel.read('back', 'background')) {
+        gameModel.clear(['back']);
+      }
+
+      // создание фона с учетом текущих размеров игры
+      gameModel.create(
+        'back', 'background', 'Back',
+        {
+          image: loader.getResult('background'),
+          width: width,
+          height: height,
+          imgWidth: img.width,
+          imgHeight: img.height
+        }
+      );
+    }
+  }
+
+  // ресайз игры
+  function resize(data) {
+    var width = data.width
+      , height = data.height;
+
+    back.width = width;
+    back.height = height;
+
+    // создание нового фона с учетом новых размеров
+    drawBack(back.width, back.height);
+
+    vimp.width = width;
+    vimp.height = height;
+
+    radar.width = radar.height =
+      Math.round(width * RADAR_PROPORTION);
+
+    gameUpdateAllView();
+  }
+
+  // обновляет все представления
+  function gameUpdateAllView() {
+    var uPlayer = gameModel.read('player', userName)
+      , uRadar = gameModel.read('radar', userName);
+
+    gameCtrl.update('back');
+
+    gameCtrl.update('vimp', {
+      user: uPlayer,
+      ratio: 1,
+      width: vimp.width,
+      height: vimp.height
+    });
+
+    gameCtrl.update('radar', {
+      user: uRadar,
+      ratio: RADAR_SCALE_RATIO,
+      width: radar.width,
+      height: radar.height
+    });
+  }
+
 // ДАННЫЕ С СЕРВЕРА
 
-  socket.on('auth', function (data) {
-    var emptyArr = false // флаг при отправке пустого массива
-      , back = document.getElementById(CANVAS_BACK_ID)
-      , vimp = document.getElementById(CANVAS_VIMP_ID)
-      , radar = document.getElementById(CANVAS_RADAR_ID);
-
-    // маcштабирование игры под пользователя
-    function resizeGame(width, height) {
-      back.width = width || window.innerWidth;
-      back.height = height || window.innerHeight;
-
-      vimp.width = width || window.innerWidth;
-      vimp.height = height || window.innerHeight;
-
-      radar.width = radar.height =
-        Math.round(vimp.width * RADAR_PROPORTION);
-    }
-
+  // поступление начальных данных игры
+  // (срабатывает в начале игры)
+  // активация игры
+  // TODO: присылать данные для юзера тут!
+  socket.on('auth', function (serverData) {
     // если активация на сервере прошла успешно
-    if (data.auth === true) {
-      // настройка разрешения
-      resizeGame();
-
-      // Активация USER
-      var userModel = new UserModel({
-        width: window.innerWidth,
-        height: window.innerHeight,
-      // TODO: присылается с сервера
-        keys: {
-          87: 'forward',
-          83: 'back',
-          65: 'left',
-          68: 'right',
-          72: 'gLeft',
-          74: 'gRight',
-          67: 'gCenter',
-          75: 'fire',
-          80: 'zoomPlus',
-          79: 'zoomMinus',
-          81: 'zoomDefault'
-        }
-      });
-      var userView = new UserView(userModel, {
-        window: window
-      });
-      var userCtrl = new UserCtrl(userModel, userView);
-
-      // Активация GameView
-      gameView = new GameView(vimp);
-
-      // Активация RadarView
-      radarView = new GameView(radar);
+    if (serverData.auth === true) {
 
       // загрузка графических файлов
       loader = new LoadQueue(false);
       loader.onComplete = handleComplete;
       loader.loadManifest(manifest);
 
+      // загрузка данных завершена
       function handleComplete() {
-        var img = loader.getItem('background');
+        // флаг при отправке пустого массива
+        // При бездействии пользователя информация на
+        // сервер не отправляется
+        var emptyArr = false
+          , cmds = []
+          , keys = serverData.keys
+          , user = serverData.user;
 
-        // Фон игры.
-        // Длина и высота фона больше экрана
-        // на размер изображения помноженное на 2
-        // Фон смещен на координаты равные
-        // размеру фона
-        // То есть фон больше экрана со всех сторон
-        // на один размер изображения
-        backModel = new GameModel('Back', {
-          image: loader.getResult('background'),
-          x: -img.width,
-          y: -img.height,
-          width: back.width + (img.width * 2),
-          height: back.height + (img.height * 2),
-          stepX: img.width,
-          stepY: img.height
+        // запуск игры
+        startGame();
+
+        // cоздание игрока пользователя
+        gameModel.create(
+          'player', userName, user.model, user
+        );
+
+        // создание игрока пользователя на радаре
+        gameModel.create(
+          'radar', userName, 'Radar', user
+        );
+
+        // подписка на события от userModel
+        userModel.publisher.on('resize', resize);
+        userModel.publisher.on('cmds', function (data) {
+          cmds = data;
         });
 
-        backView = new GameView(back)
-        backView.add(backModel);
-        backView.update();
+        // загружаем управление пользователя,
+        // полученное с сервера
+        userCtrl.updateKeys(keys);
+
+        // подстраиваем размер под размер пользователя
+        userCtrl.resize({
+          width: window.innerWidth,
+          height: window.innerHeight
+        });
+
+        // Счетчик: отправляет данные
+        // нажатых клавиш на сервер.
+        // Если данных нет, то на сервер
+        // поступает пустой массив
+        // (но только 1 раз!)
+        Ticker.addEventListener("tick", function () {
+          if (cmds.length !== 0) {
+            socket.emit('cmds', cmds);
+            emptyArr = false;
+          } else if (emptyArr === false) {
+            socket.emit('cmds', cmds);
+            emptyArr = true;
+          }
+        });
+
+        // отображение игры
+        back.style.display = 'block';
+        vimp.style.display = 'block';
+        radar.style.display = 'block';
       }
-
-      // отображение игры
-      back.style.display = 'block';
-      vimp.style.display = 'block';
-      radar.style.display = 'block';
-
-      // Счетчик: отправляет данные
-      // нажатых клавиш на сервер.
-      // Если данных нет, то на сервер
-      // поступает пустой массив
-      // (но только 1 раз!)
-      Ticker.addEventListener("tick", function() {
-        var cmds = userModel._cmds;
-
-        if (cmds.length !== 0) {
-          socket.emit('cmds', cmds);
-          emptyArr = false;
-        } else if (emptyArr === false) {
-          socket.emit('cmds', cmds);
-          emptyArr = true;
-        }
-      });
-
-      // событие при изменении размеров игры
-      // TODO: сделать параметры пользователя
-      // универсальными
-//      window.onresize = function () {
-//        var user = playerData[userName];
-//
-//        resizeGame();
-//        backModel.move(
-//          'background', user.x, user.y, user.scale
-//        );
-//        gameView.resize(vimp.width, vimp.height);
-//        gameView.update(user);
-//        radarView.resize(radar.width, radar.height);
-//        radarView.update(radarData[userName]);
-//      };
     }
   });
 
+  // поступление новых данных игры
   socket.on('game', function (data) {
-    if (typeof data !== 'object') {
-      return;
-    }
-
-    var backX
-      , backY
+    // TODO: в будещем использование WebWorker
+    // чтобы снять нагрузку
+    var player = data.player
+      , bullet = data.bullet
       , i;
 
     // обновление фона
     // Это срабатывает только когда переместился
     // пользователь. Другие игроки не должны влиять на
     // координаты и вызывать этот метод
+    // Эти вычисления должны производится до обновления
+    // модели игрока (т.к. используются как старые
+    // так и новые данные)
     // вычисляет данные для фона игры
-    if (data[userName] && player[userName]) {
-      var scale = data[userName].scale;
-      backX = player[userName].x - data[userName].x;
-      backY = player[userName].y - data[userName].y;
+    if (player[userName]) {
+      var back = gameModel.read('back', 'background')
+        , oldData = gameModel.read('player', userName)
+        , newData = player[userName]
+        , scale = newData.scale
+        , backX = newData.x - oldData.x
+        , backY = newData.y - oldData.y;
 
       // если x или y не равны 0
-      if (backX || backY) {
-        backModel.update({
+      if (back && backX || backY) {
+        back.update({
           x: backX,
           y: backY,
           scale: scale
@@ -276,71 +334,40 @@ require([
       }
     }
 
-    // функция получения координат пользователя
-    function cords(user, ratio, width, height) {
-      var ratio = ratio || 1
-        , prop = prop || 1
-        , scale = +(user.scale / ratio).toFixed(10)
-        , data = {}
-        , width = width || window.innerWidth
-        , height = height || window.innerHeight;
-
-      data.x = -(user.x * scale - width / 2);
-      data.y = -(user.y * scale - height / 2);
-
-      // устранение неточности
-      data.x = +(data.x).toFixed(10);
-      data.y = +(data.y).toFixed(10);
-
-      data.scale = scale;
-
-      return data;
+    // очистка памяти от объектов
+    // TODO: можно разделить на несколько этапов
+    // чтоб не создавать нагрузку на систему
+    // Например сначала чистим радар, потом игровое
+    // полотно
+    if (iterations >= LIMIT_ITERATION) {
+      iterations = 0;
+      gameModel.clear(['player', 'bullet', 'radar']);
     }
 
-    for (i in data) {
-      if (data.hasOwnProperty(i)) {
+    iterations += 1;
+
+//    console.log(iterations);
+
+    // работает с моделями на vimp и radar
+    for (i in player) {
+      if (player.hasOwnProperty(i)) {
 
         // если игрок есть - обновить данные
-        if (player[i]) {
-          console.log('обновление игрока');
-          player[i].update(data[i]);
-          radar[i].update(data[i]);
+        if (gameModel.read('player', i)) {
+//          console.log('обновление экземпляра');
+          gameModel.update('player', i, player[i]);
+          gameModel.update('radar', i, player[i]);
 
         // иначе создать игрока
         } else {
-          console.log('cоздание игрока');
-          player[i] = new GameModel(
-            data[i].model, data[i]
-          );
-          gameView.add(player[i]);
-
-          radar[i] = new GameModel('Radar', data[i]);
-          radarView.add(radar[i]);
+//          console.log('cоздание экземпляра');
+          gameModel.create('player', i, player[i].model, player[i]);
+          gameModel.create('radar', i, 'Radar', player[i]);
         }
       }
     }
 
-    // После обработки данных
-    // обновление полотна пользователя
-    if (player[userName]) {
-      gameView.update(cords(player[userName]));
-      window.user = player[userName];
-      window.radar = radar[userName];
-
-      // Обновление радара
-      var wRadar = hRadar =
-        window.innerWidth * RADAR_PROPORTION;
-
-      radarView.update(
-        cords(
-          radar[userName],
-          RADAR_SCALE_RATIO,
-          wRadar,
-          hRadar
-      ));
-
-      backView.update();
-    }
-
+    // тут будет обновление всех представлений
+    gameUpdateAllView();
   });
 });

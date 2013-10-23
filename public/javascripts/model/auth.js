@@ -1,9 +1,9 @@
 define([
   'Publisher',
-  'GameModel'
+  'Factory'
 ], function (
   Publisher,
-  GameModel
+  Factory
 ) {
   // Singleton AuthModel
   var authModel;
@@ -74,9 +74,8 @@ define([
   AuthModel.prototype.createModels = function (data) {
     for (var i in data) {
       if (data.hasOwnProperty(i)) {
-        this._models[data[i].model] = new GameModel(
-          data[i].model, data[i]
-        );
+        this._models[data[i].model] =
+          Factory(data[i].model, data[i]);
       }
     }
 

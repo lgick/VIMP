@@ -1,6 +1,5 @@
 define(['createjs'], function (createjs) {
-  // Наследуемый объект
-  // для отображения игры в нескольких видах
+  // Объект для инициализации представлений игры
   var Stage = createjs.Stage;
 
   function GameView(stage) {
@@ -15,8 +14,8 @@ define(['createjs'], function (createjs) {
       this._stage = new Stage(stage);
     },
     // создает экземпляр на полотне
-    add: function (player) {
-      this._stage.addChild(player);
+    add: function (instance) {
+      this._stage.addChild(instance);
     },
     // обновляет полотно
     update: function (data) {
@@ -31,8 +30,9 @@ define(['createjs'], function (createjs) {
       this._stage.update();
     },
     // удаляет экземпляр с полотна
-    remove: function (player) {
-      this._stage.removeChild(player);
+    // TODO: пока не используется
+    remove: function (instance) {
+      this._stage.removeChild(instance);
     },
     // полностью очищает полотно
     clear: function () {

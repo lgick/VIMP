@@ -2,17 +2,15 @@ define(['Publisher'], function (Publisher) {
   // Singleton UserView
   var userView;
 
-  function UserView(model, params) {
+  function UserView(window) {
     if (userView) {
       return userView;
     }
 
     userView = this;
 
-//    this._mPublic = model.publisher;
+    this._window = window;
 
-    this._window = params.window;
-    this._elements = params.elements;
     this.publisher = new Publisher();
 
     this._window.onkeydown = function (e) {

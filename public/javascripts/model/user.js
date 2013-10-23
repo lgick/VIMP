@@ -1,18 +1,18 @@
-define([], function () {
+define(['Publisher'], function (Publisher) {
   // Singleton UserModel
   var userModel;
 
-  function UserModel(params) {
+  function UserModel() {
     if (userModel) {
       return userModel;
     }
 
     userModel = this;
 
-    this._keys = params.keys;
     this._cmds = [];
-    this._width = params.width;
-    this._height = params.height;
+    this._keys = null;
+
+    this.publisher = new Publisher();
   }
 
   UserModel.prototype = {
@@ -26,6 +26,8 @@ define([], function () {
       }
 
       this._cmds.push(cmd);
+
+      this.publisher.emit('cmds', this._cmds);
     },
     // удаляет команду
     removeCmd: function (keyCode) {
@@ -37,10 +39,8 @@ define([], function () {
       }
 
       this._cmds.splice(index, 1);
-    },
-    // обновляет набор клавиша-команда
-    updateKeyData: function (keyData) {
-      this._keys = keyData;
+
+      this.publisher.emit('cmds', this._cmds);
     },
     // преобразует клавишу в команду
     parseKey: function (keyCode) {
@@ -57,10 +57,13 @@ define([], function () {
         }
       }
     },
-    // изменяет размер игры
-    resize: function (width, height) {
-      this._width = width;
-      this._height = height;
+    // обновляет набор клавиша-команда
+    updateKeys: function (keyData) {
+      this._keys = keyData;
+    },
+    // размеры игры
+    resize: function (data) {
+      this.publisher.emit('resize', data);
     }
   };
 

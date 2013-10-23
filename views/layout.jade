@@ -11,9 +11,7 @@ html
           io:          '/vimp/socket.io/socket.io',
           preloadjs:   'lib/preloadjs-NEXT.min',
           createjs:    'lib/easeljs-NEXT.min',
-
-          Publisher:   'pattern/publisher',
-          Mediator:    'pattern/mediator',
+          Publisher:   'lib/publisher',
 
           AuthView:    'view/auth',
           UserView:    'view/user',
@@ -25,10 +23,12 @@ html
 
           AuthCtrl:    'controller/auth',
           UserCtrl:    'controller/user',
+          GameCtrl:    'controller/game',
 
-          BackModel:   'model/game/back',
-          RadarModel:  'model/game/radar',
-          ShipModel:   'model/game/ship'
+          Factory:     'model/factory',
+          BackModel:   'model/parts/back',
+          RadarModel:  'model/parts/radar',
+          ShipModel:   'model/parts/ship'
         },
         shim: {
           'createjs': {

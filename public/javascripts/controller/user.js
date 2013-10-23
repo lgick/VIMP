@@ -10,7 +10,6 @@ define([], function () {
     userCtrl = this;
 
     this._model = model;
-    this._view = view;
     this._vPublic = view.publisher;
 
     this._vPublic.on('keyDown', 'add', userCtrl);
@@ -27,13 +26,13 @@ define([], function () {
     remove: function (keyCode) {
       this._model.removeCmd(keyCode);
     },
-    // обновляет клавиши ввода
+    // обновляет набор клавиша-команда
     updateKeys: function (keyData) {
-      this._model.updateKeyData(keyData);
+      this._model.updateKeys(keyData);
     },
     // обновляет размеры
     resize: function (data) {
-      this._model.resize(data.width, data.height);
+      this._model.resize(data);
     }
   };
 
