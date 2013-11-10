@@ -34,6 +34,7 @@ define(['createjs'], function (createjs) {
     this.x = params.x || 0;
     this.y = params.y || 0;
     this.rotation = params.rotation || 0;
+    this.flameStatus = params.flameStatus || false;
 
     this.create();
   };
@@ -90,7 +91,7 @@ define(['createjs'], function (createjs) {
     g.lineTo(10, -6);
     g.closePath();
 
-    this._createFlameOff();
+    this._createFlame();
   };
 
   // обновляет функционал экземпляра
@@ -99,50 +100,44 @@ define(['createjs'], function (createjs) {
     this.y = data.y;
     this.rotation = data.rotation;
     this.scale = data.scale;
+    this.flameStatus = data.flameStatus;
 
-    if (data.flame) {
-      this._createFlameOn();
+    this._createFlame();
+  };
+
+  // отображает огонь при движении
+  p._createFlame = function () {
+    var g = this.flame.graphics;
+
+    g.clear();
+
+    if (this.flameStatus === true) {
+      g.setStrokeStyle(1);
+      g.beginStroke('blue');
+      g.beginFill('orange');
+      g.moveTo(-6, -13);
+      g.lineTo(-4, -15);
+      g.lineTo(-2, -13);
+      g.lineTo(0, -19);
+      g.lineTo(2, -13);
+      g.lineTo(4, -15);
+      g.lineTo(6, -13);
+      g.lineTo(0, -9);
+      g.closePath();
     } else {
-      this._createFlameOff();
+      g.setStrokeStyle(1);
+      g.beginStroke('#444444');
+      g.beginFill('#440000');
+      g.moveTo(-6, -13);
+      g.lineTo(-4, -15);
+      g.lineTo(-2, -13);
+      g.lineTo(0, -15);
+      g.lineTo(2, -13);
+      g.lineTo(4, -15);
+      g.lineTo(6, -13);
+      g.lineTo(0, -9);
+      g.closePath();
     }
-  };
-
-  p._createFlameOff = function () {
-    var g = this.flame.graphics;
-
-    g.clear();
-
-    g.setStrokeStyle(1);
-    g.beginStroke('#444444');
-    g.beginFill('#440000');
-    g.moveTo(-6, -13);
-    g.lineTo(-4, -15);
-    g.lineTo(-2, -13);
-    g.lineTo(0, -15);
-    g.lineTo(2, -13);
-    g.lineTo(4, -15);
-    g.lineTo(6, -13);
-    g.lineTo(0, -9);
-    g.closePath();
-  };
-
-  p._createFlameOn = function () {
-    var g = this.flame.graphics;
-
-    g.clear();
-
-    g.setStrokeStyle(1);
-    g.beginStroke('blue');
-    g.beginFill('orange');
-    g.moveTo(-6, -13);
-    g.lineTo(-4, -15);
-    g.lineTo(-2, -13);
-    g.lineTo(0, -19);
-    g.lineTo(2, -13);
-    g.lineTo(4, -15);
-    g.lineTo(6, -13);
-    g.lineTo(0, -9);
-    g.closePath();
   };
 
   return Ship;
