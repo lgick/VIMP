@@ -22,15 +22,11 @@ define(['createjs'], function (createjs) {
     this.addChild(this.body);
     this.addChild(this.gun);
 
-    this.name = params.name || 'Bot';
     this.colorA = params.colorA || '#ffffff';
     this.colorB = params.colorB || '#333333';
-    this.scale = params.scale || 100;
+    this.scale = params.scale || 1;
     this.scaleX = params.scaleX || 1;
     this.scaleY = params.scaleY || 1;
-    this.model = params.model || 'Tank';
-    this.score = params.score || 10000;
-    this.status = params.status || 'alive';
     this.x = params.x || 0;
     this.y = params.y || 0;
     this.rotation = params.rotation || 0;
@@ -52,10 +48,10 @@ define(['createjs'], function (createjs) {
     g.setStrokeStyle(1);
     g.beginStroke('#cccccc');
     g.beginFill(this.colorA);
-    g.moveTo(-18, 22);
-    g.lineTo(-18, -26);
-    g.lineTo(18, -26);
-    g.lineTo(18, 22);
+    g.moveTo(22, -18);
+    g.lineTo(-26, -18);
+    g.lineTo(-26, 18);
+    g.lineTo(22, 18);
     g.closePath();
 
     this._createGun(this.colorB);
@@ -78,23 +74,23 @@ define(['createjs'], function (createjs) {
     g.setStrokeStyle(1);
     g.beginStroke('#cccccc');
     g.beginFill(colorB);
-    g.moveTo(-5, 16);
-    g.lineTo(-12, 5);
-    g.lineTo(-12, -5);
-    g.lineTo(-5, -16);
-    g.lineTo(5, -16);
-    g.lineTo(12, -5);
-    g.lineTo(12, 5);
-    g.lineTo(5, 16);
+    g.moveTo(16, -5);
+    g.lineTo(5, -12);
+    g.lineTo(-5, -12);
+    g.lineTo(-16, -5);
+    g.lineTo(-16, 5);
+    g.lineTo(-5, 12);
+    g.lineTo(5, 12);
+    g.lineTo(16, 5);
     g.closePath();
 
     g.setStrokeStyle(1);
     g.beginStroke('#cccccc');
     g.beginFill('#333333');
-    g.moveTo(-3, 28);
-    g.lineTo(-3, 3);
+    g.moveTo(28, -3);
+    g.lineTo(3, -3);
     g.lineTo(3, 3);
-    g.lineTo(3, 28);
+    g.lineTo(28, 3);
     g.closePath();
   };
 

@@ -1,9 +1,7 @@
 define([
-  'Publisher',
-  'GameView'
+  'Publisher', 'GameView'
 ], function (
-  Publisher,
-  GameView
+  Publisher, GameView
 ) {
   // Singleton AuthView
   var authView;
@@ -29,10 +27,11 @@ define([
     this._error = elements.error;
     this._enter = elements.enter;
 
-
     this.publisher = new Publisher();
 
-    this.initialize(this._colorPreview);
+    this.gameView = new GameView(
+      this._colorPreview, model.gameModel
+    );
 
     // изменение имени
     this._name.onchange = function () {
@@ -83,13 +82,8 @@ define([
 
     this._mPublic.on('update', 'updateForm', authView);
     this._mPublic.on('error', 'readErr', authView);
-    this._mPublic.on('models', 'addModels', authView);
-    this._mPublic.on('upModels', 'update', authView);
     this._mPublic.on('ready', 'hideAuth', authView);
   }
-
-  // наследование прототипа GameView
-  AuthView.prototype = GameView.prototype;
 
   // показывает форму
   AuthView.prototype.showAuth = function () {
@@ -110,17 +104,6 @@ define([
   // переключает значение типа цвета
   AuthView.prototype.switchType = function (type) {
     this._colorType = type;
-  };
-
-  // добавляет модели игроков
-  AuthView.prototype.addModels = function (data) {
-    for (var i in data) {
-      if (data.hasOwnProperty(i)) {
-        this.add(data[i]);
-      }
-    }
-
-    this.publisher.emit('color');
   };
 
   // обрабатывает ошибки

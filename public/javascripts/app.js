@@ -3,7 +3,8 @@ require([
   'Publisher',
   'AuthModel', 'AuthView', 'AuthCtrl',
   'UserModel', 'UserView', 'UserCtrl',
-  'GameModel', 'GameView', 'GameCtrl',
+  'GameModel', 'GameView',
+  'VimpCtrl', 'BackCtrl', 'RadarCtrl',
   'Factory',
   'BackModel', 'ShipModel', 'RadarModel'
 ], function (
@@ -11,7 +12,8 @@ require([
   Publisher,
   AuthModel, AuthView, AuthCtrl,
   UserModel, UserView, UserCtrl,
-  GameModel, GameView, GameCtrl,
+  GameModel, GameView,
+  VimpCtrl, BackCtrl, RadarCtrl,
   Factory,
   BackModel, ShipModel, RadarModel
 ) {
@@ -44,6 +46,8 @@ require([
     , LIMIT_ITERATION = 100
 
     , loader
+    // TODO: перенести это на сервер
+    // и выдавать в случае удачной авторизации
     , manifest = [
       {
         id: 'background',
@@ -56,16 +60,21 @@ require([
     // число обновлений с сервера
     , iterations = 0
 
+    // кеш данных пользователя при последнем обновлении
+    , vimpUserCache = null
+    , radarUserCache = null
+
     , back = document.getElementById(CANVAS_BACK_ID)
     , vimp = document.getElementById(CANVAS_VIMP_ID)
     , radar = document.getElementById(CANVAS_RADAR_ID)
 
+  // TODO: выпилить ненужное!!!!
     , userModel = null
-    , userView = null
     , userCtrl = null
 
-    , gameModel = null
-    , gameCtrl = null
+    , vimpCtrl = null
+    , backCtrl = null
+    , radarCtrl = null
   ;
 
   // авторизация пользователя
@@ -93,32 +102,35 @@ require([
     });
     authCtrl = new AuthCtrl(authModel, authView);
 
-    authModel.validate(
-      {name: 'name', type: 'name', value: name}
-    );
-    authModel.validate(
-      {name: 'colorA', type: 'color', value: colorA}
-    );
-    authModel.validate(
-      {name: 'colorB', type: 'color', value: colorB}
-    );
-    authModel.validate(
-      {name: 'model', type: 'model', value: 'Ship'}
-    );
-
-    authModel.createModels({
+    authCtrl.parseModels({
       ship: {
-        name: 'bot',
-        x: 60,
+        constructor: 'Ship',
+        x: 30,
         y: 35,
-        scaleX: 2,
-        scaleY: 2,
-        model: 'Ship',
-        rotation: 180,
+        scaleX: 1.4,
+        scaleY: 1.4,
+        rotation: 270,
+        colorA: colorA,
+        colorB: colorB
+      },
+      ship2: {
+        constructor: 'Ship',
+        x: 90,
+        y: 35,
+        scaleX: 1.4,
+        scaleY: 1.4,
+        rotation: 270,
         colorA: colorA,
         colorB: colorB
       }
     });
+
+    authCtrl.parseData([
+      {name: 'name', type: 'name', value: name},
+      {name: 'colorA', type: 'color', value: colorA},
+      {name: 'colorB', type: 'color', value: colorB},
+      {name: 'model', type: 'model', value: 'Ship'}
+    ]);
 
     authView.showAuth();
 
@@ -137,47 +149,55 @@ require([
 
   // стартует игру
   function startGame() {
+    var userView
+      , vimpModel
+      , vimpView
+      , backModel
+      , backView
+      , radarModel
+      , radarView;
+
+    // старт user
+    // TODO: выпилить userModel;
     userModel = new UserModel();
     userView = new UserView(window);
     userCtrl = new UserCtrl(userModel, userView);
 
-    // модель игры
-    gameModel = new GameModel({
-      player: {},
-      radar: {},
-      bullet: {},
-      back: {}
-    });
+    // старт vimp
+    vimpModel = new GameModel();
+    vimpView = new GameView(vimp, vimpModel);
+    vimpCtrl = new VimpCtrl(vimpModel, vimpView);
 
-    // контроллер игры (медиатор)
-    gameCtrl = new GameCtrl(gameModel, {
-      back: new GameView(back),
-      vimp: new GameView(vimp),
-      radar: new GameView(radar)
-    });
+    // старт back
+    backModel = new GameModel();
+    backView = new GameView(back, backModel);
+    backCtrl = new BackCtrl(backModel, backView);
+
+    // старт radar
+    radarModel = new GameModel();
+    radarView = new GameView(radar, radarModel);
+    radarCtrl = new RadarCtrl(radarModel, radarView);
   }
 
-  // отрисовывает фон игры
+  // отрисовывает фон игры при ресайзе
   function drawBack(width, height) {
     var img = loader.getItem('background');
 
     if (img) {
-      // если фон уже есть удаляем его
-      if (gameModel.read('back', 'background')) {
-        gameModel.clear(['back']);
-      }
+      // очищает back
+      backCtrl.remove()
 
       // создание фона с учетом текущих размеров игры
-      gameModel.create(
-        'back', 'background', 'Back',
-        {
+      backCtrl.parse('background', {
+        back: {
+          constructor: 'Back',
           image: loader.getResult('background'),
           width: width,
           height: height,
           imgWidth: img.width,
           imgHeight: img.height
         }
-      );
+      });
     }
   }
 
@@ -203,20 +223,16 @@ require([
 
   // обновляет все представления
   function gameUpdateAllView() {
-    var uPlayer = gameModel.read('player', userName)
-      , uRadar = gameModel.read('radar', userName);
+    backCtrl.update();
 
-    gameCtrl.update('back');
-
-    gameCtrl.update('vimp', {
-      user: uPlayer,
-      ratio: 1,
+    vimpCtrl.update({
+      user: vimpUserCache,
       width: vimp.width,
       height: vimp.height
     });
 
-    gameCtrl.update('radar', {
-      user: uRadar,
+    radarCtrl.update({
+      user: radarUserCache,
       ratio: RADAR_SCALE_RATIO,
       width: radar.width,
       height: radar.height
@@ -228,7 +244,6 @@ require([
   // поступление начальных данных игры
   // (срабатывает в начале игры)
   // активация игры
-  // TODO: присылать данные для юзера тут!
   socket.on('auth', function (serverData) {
     // если активация на сервере прошла успешно
     if (serverData.auth === true) {
@@ -251,15 +266,13 @@ require([
         // запуск игры
         startGame();
 
-        // cоздание игрока пользователя
-        gameModel.create(
-          'player', userName, user.model, user
-        );
+        // создание игрока пользователя
+        vimpCtrl.parse(userName, user['vimp']);
+        radarCtrl.parse(userName, user['radar']);
 
-        // создание игрока пользователя на радаре
-        gameModel.create(
-          'radar', userName, 'Radar', user
-        );
+        // кеширование
+        vimpUserCache = user['vimp']['player'];
+        radarUserCache = user['radar'];
 
         // подписка на события от userModel
         userModel.publisher.on('resize', resize);
@@ -297,16 +310,16 @@ require([
         vimp.style.display = 'block';
         radar.style.display = 'block';
       }
+    } else {
+      // TODO: авторизация на сервере закончилась
+      // неудачей
     }
   });
 
   // поступление новых данных игры
   socket.on('game', function (data) {
     // TODO: в будещем использование WebWorker
-    // чтобы снять нагрузку
-    var player = data.player
-      , bullet = data.bullet
-      , i;
+    var i;
 
     // обновление фона
     // Это срабатывает только когда переместился
@@ -316,22 +329,15 @@ require([
     // модели игрока (т.к. используются как старые
     // так и новые данные)
     // вычисляет данные для фона игры
-    if (player[userName]) {
-      var back = gameModel.read('back', 'background')
-        , oldData = gameModel.read('player', userName)
-        , newData = player[userName]
-        , scale = newData.scale
-        , backX = newData.x - oldData.x
-        , backY = newData.y - oldData.y;
+    if (data[userName]) {
+      backCtrl.updateCoords({
+        oldData: vimpUserCache,
+        newData: data[userName]['vimp']['player']
+      });
 
-      // если x или y не равны 0
-      if (back && backX || backY) {
-        back.update({
-          x: backX,
-          y: backY,
-          scale: scale
-        });
-      }
+      // кеширование
+      vimpUserCache = data[userName]['vimp']['player'];
+      radarUserCache = data[userName]['radar'];
     }
 
     // очистка памяти от объектов
@@ -339,35 +345,29 @@ require([
     // чтоб не создавать нагрузку на систему
     // Например сначала чистим радар, потом игровое
     // полотно
-    if (iterations >= LIMIT_ITERATION) {
+    // TODO: выпилить баг:
+    // если после очистки памяти объект не двигается -
+    // он не появляется (потому как бездейственные
+    // объекты не приходят с сервера)
+    // Решение: ПРИСЫЛАТЬ ВСЕ ОБЪЕКТЫ С СЕРВЕРА,
+    // ДАЖЕ ТЕ, КОТОРЫЕ НЕ СОВЕРШАЛИ ДЕЙСТВИЙ
+    if (iterations === LIMIT_ITERATION) {
+      vimpCtrl.remove();
+      radarCtrl.remove();
       iterations = 0;
-      gameModel.clear(['player', 'bullet', 'radar']);
     }
 
     iterations += 1;
 
-//    console.log(iterations);
-
-    // работает с моделями на vimp и radar
-    for (i in player) {
-      if (player.hasOwnProperty(i)) {
-
-        // если игрок есть - обновить данные
-        if (gameModel.read('player', i)) {
-//          console.log('обновление экземпляра');
-          gameModel.update('player', i, player[i]);
-          gameModel.update('radar', i, player[i]);
-
-        // иначе создать игрока
-        } else {
-//          console.log('cоздание экземпляра');
-          gameModel.create('player', i, player[i].model, player[i]);
-          gameModel.create('radar', i, 'Radar', player[i]);
-        }
+    for (i in data) {
+      if (data.hasOwnProperty(i)) {
+        vimpCtrl.parse(i, data[i]['vimp']);
+        radarCtrl.parse(i, data[i]['radar']);
       }
     }
 
     // тут будет обновление всех представлений
     gameUpdateAllView();
+
   });
 });

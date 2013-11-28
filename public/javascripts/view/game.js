@@ -2,17 +2,20 @@ define(['createjs'], function (createjs) {
   // Объект для инициализации представлений игры
   var Stage = createjs.Stage;
 
-  function GameView(stage) {
-    if (stage) {
-      this.initialize(stage);
-    }
+  function GameView(stage, model) {
+    this._stage = new Stage(stage);
+
+    this._model = model;
+
+    // подписка на события модели
+    this._mPublic = this._model.publisher;
+
+    this._mPublic.on('create', 'add', this);
+    this._mPublic.on('remove', 'remove', this);
+    this._mPublic.on('clear', 'clear', this);
   }
 
   GameView.prototype = {
-    // инициализация
-    initialize: function (stage) {
-      this._stage = new Stage(stage);
-    },
     // создает экземпляр на полотне
     add: function (instance) {
       this._stage.addChild(instance);
@@ -30,7 +33,6 @@ define(['createjs'], function (createjs) {
       this._stage.update();
     },
     // удаляет экземпляр с полотна
-    // TODO: пока не используется
     remove: function (instance) {
       this._stage.removeChild(instance);
     },

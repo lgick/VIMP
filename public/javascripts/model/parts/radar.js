@@ -44,10 +44,10 @@ define(['createjs'], function (createjs) {
 
     g.beginStroke(this.colorB);
     g.beginFill(this.colorA);
-    g.moveTo(0, 7);
-    g.lineTo(5, -7);
-    g.lineTo(0, -5);
-    g.lineTo(-5, -7);
+    g.moveTo(7, 0);
+    g.lineTo(-7, 5);
+    g.lineTo(-5, 0);
+    g.lineTo(-7, -5);
     g.closePath();
   };
 

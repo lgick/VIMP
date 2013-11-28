@@ -1,9 +1,7 @@
 define([
-  'Publisher',
-  'Factory'
+  'Publisher', 'GameModel'
 ], function (
-  Publisher,
-  Factory
+  Publisher, GameModel
 ) {
   // Singleton AuthModel
   var authModel;
@@ -16,7 +14,7 @@ define([
     authModel = this;
 
     this._data = {};
-    this._models = {};
+    this.gameModel = new GameModel();
     this.publisher = new Publisher();
   }
 
@@ -70,32 +68,20 @@ define([
     }
   };
 
-  // создание моделей игроков
-  AuthModel.prototype.createModels = function (data) {
-    for (var i in data) {
-      if (data.hasOwnProperty(i)) {
-        this._models[data[i].model] =
-          Factory(data[i].model, data[i]);
-      }
-    }
-
-    this.publisher.emit('models', this._models);
-  };
-
   // обновляет модели с актуальным цветом
-  AuthModel.prototype.updateModels = function () {
-    var colorA = this._data['colorA']
-      , colorB = this._data['colorB'];
+  AuthModel.prototype.updateModels = function (type) {
+    var models = this.gameModel._data[type]
+      , colorA = this._data['colorA']
+      , colorB = this._data['colorB']
+      , i;
 
     if (colorA && colorB) {
-      for (var i in this._models) {
-        if (this._models.hasOwnProperty(i)) {
-          this._models[i].create(colorA, colorB);
+      for (i in models) {
+        if (models.hasOwnProperty(i)) {
+          models[i].create(colorA, colorB);
         }
       }
     }
-
-    this.publisher.emit('upModels');
   };
 
   // шаблоны для проверки данных

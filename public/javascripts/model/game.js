@@ -5,106 +5,88 @@ define([
   Publisher,
   Factory
 ) {
-  // Singleton gameModel
-  // содержит данные игры.
-  // CRUD-функционал (create, read, update, delete):
-  // создает новые объекты игры (create),
-  // возвращает объект (read),
-  // обновляет объекты игры (update),
-  // удаляет объекты игры (remove, clear)
-  var gameModel;
-
-  // создание модели с заданными данными
-  // аргумент dataTypes имеет вид
-  // dataTypes = {
-  //   player: {},
-  //   radar: {},
-  //   bullet: {},
-  //   back: {}
-  // }
-  function GameModel(dataTypes) {
-    if (gameModel) {
-      return gameModel;
-    }
-
-    gameModel = this;
-
-    this._data = dataTypes;
-
+  // Работает с данными игры.
+  // CRUD-функционал (create, read, update, remove):
+  function GameModel() {
+    this._data = {};
     this.publisher = new Publisher();
   }
 
-  // создает новый объект
-  // по данным:
+  // Создает экземпляры вида:
+  // this._data['player']['Bob'] - игрок Bob
+  // this._data['bullet']['Bob'] - пули игрока Bob
+  // this._data['radar']['Bob']  - игрок Bob на радаре
   //
-  // dataType: тип которому соответствует объект
-  // (например тип пули или тип радар или тип player)
-  // name: имя игрока
-  //
-  // (например получить модель машинки игрока у
-  // пользователя с именем 'Bob' можно так:
-  // this._data['player']['Bob'];
-  // его пули можно будет получить так:
-  // this._data['bullet']['Bob'];
-  // его модель на радаре:
-  // this._data['radar']['Bob'];
-  // )
+  // type        - тип экземпляра
+  // name        - имя экземпляра
+  // constructor - имя конструктора для экземпляра
+  // data        - данные для создания экземпляра
   GameModel.prototype.create = function (
-    dataType, name, type, params
+    type, name, constructor, data
   ) {
-    this._data[dataType][name] = Factory(type, params);
+    this._data[type] = this._data[type] || {};
 
-    this.publisher.emit('create', {
-      type: dataType,
-      instance: this._data[dataType][name]
-    });
+    this._data[type][name] = Factory(constructor, data);
+
+    this.publisher.emit(
+      'create', this._data[type][name]
+    );
   };
 
-  // возвращает данные по аргументам:
+  // Возвращает данные:
   // - данные конкретного типа и имени
   // - данные конкетного типа
   // - все данные
-  GameModel.prototype.read = function (dataType, name) {
-    if (dataType && name) {
-      return this._data[dataType][name];
-    } else if (dataType) {
-      return this._data[dataType];
+  // - ничего (если запрашиваемых данных нет)
+  GameModel.prototype.read = function (type, name) {
+    // если нужны данные по типу
+    if (type) {
+      // .. и они существуют
+      if (this._data[type]) {
+        // .. и также нужны данные конкретного имени
+        if (name) {
+          // .. и они существуют
+          if (this._data[type][name]) {
+            return this._data[type][name];
+          }
+        } else {
+          return this._data[type];
+        }
+      }
     } else {
       return this._data;
     }
   };
 
-  // обновляет данные
+  // Обновляет данные экземпляра
   GameModel.prototype.update = function (
-    dataType, name, data
+    type, name, data
   ) {
-    this._data[dataType][name].update(data);
+    this._data[type][name].update(data);
   };
 
-  // удаляет данные по dataType и name
-  // TODO: пока не используется
-  GameModel.prototype.remove = function (
-    dataType, name
-  ) {
-    delete this._data[dataType][name];
+  // Удаляет данные:
+  // - по имени экземпляра в каждом типе
+  // - полностью
+  //
+  // name - имя экземпляра (необязательно)
+  GameModel.prototype.remove = function (name) {
+    if (name) {
+      for (var prop in this._data) {
+        if (this._data.hasOwnProperty(prop)) {
+          if (this._data[prop][name]) {
+            this.publisher.emit(
+              'remove', this._data[prop][name]
+            );
 
-    this.publisher.emit('remove', {
-      type: dataType,
-      instance: this._data[dataType][name]
-    });
-  };
+            delete this._data[prop][name];
+          }
+        }
+      }
+    } else {
+      this._data = {};
 
-  // полностью очищает объект от данных
-  // защищая от переполнения
-  // В качестве аргумента массив с типами
-  GameModel.prototype.clear = function (dataTypes) {
-    var i = 0
-      , len = dataTypes.length;
-
-    for (; i < len; i += 1) {
-      this._data[dataTypes[i]] = {};
-
-      this.publisher.emit('clear', dataTypes[i]);
+      this.publisher.emit('clear');
     }
   };
 
