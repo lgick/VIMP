@@ -6,7 +6,7 @@ define([
   // Singleton AuthModel
   var authModel;
 
-  function AuthModel() {
+  function AuthModel(data) {
     if (authModel) {
       return authModel;
     }
@@ -14,6 +14,7 @@ define([
     authModel = this;
 
     this._data = {};
+    this._checkList = data;
     this.gameModel = new GameModel();
     this.publisher = new Publisher();
   }
@@ -22,12 +23,9 @@ define([
   AuthModel.prototype.validate = function (data) {
     var name = data.name
       , type = data.type
-      , value = data.value
-      , result;
+      , value = data.value;
 
-    result = AuthModel.validate[type](value);
-
-    if (result) {
+    if (this._checkList[type].test(value)) {
       this._data[name] = value;
     } else {
       value = this._data[name] || '';
@@ -81,22 +79,6 @@ define([
           models[i].create(colorA, colorB);
         }
       }
-    }
-  };
-
-  // шаблоны для проверки данных
-  AuthModel.validate = {
-    name: function (name) {
-      var regExp = /^[a-zA-Z]([\w\s#]{0,13})[\w]{1}$/;
-      return regExp.test(name);
-    },
-    color: function (color) {
-      var regExp = /^#(?:[0-9a-fA-F]{3}){1,2}$/;
-      return regExp.test(color);
-    },
-    model: function (model) {
-      var regExp = /Ship/;
-      return regExp.test(model);
     }
   };
 

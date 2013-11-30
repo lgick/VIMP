@@ -86,7 +86,11 @@ require([
       , colorA = userColorA || '#333333'
       , colorB = userColorB || '#444444';
 
-    authModel = new AuthModel();
+    authModel = new AuthModel({
+      name: /^[a-zA-Z]([\w\s#]{0,13})[\w]{1}$/,
+      color: /^#(?:[0-9a-fA-F]{3}){1,2}$/,
+      model: /Ship/
+    });
     authView = new AuthView(authModel, {
       auth: document.getElementById('auth'),
       name: document.getElementById('auth-name'),
