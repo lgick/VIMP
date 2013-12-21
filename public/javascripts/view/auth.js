@@ -30,7 +30,7 @@ define([
     this.publisher = new Publisher();
 
     this.gameView = new GameView(
-      this._colorPreview, model.gameModel
+      model.gameModel, this._colorPreview
     );
 
     // изменение имени

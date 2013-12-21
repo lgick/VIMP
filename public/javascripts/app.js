@@ -33,6 +33,30 @@ require([
     , CANVAS_BACK_ID = 'back'
     , CANVAS_VIMP_ID = 'vimp'
     , CANVAS_RADAR_ID = 'radar'
+
+    , CHAT_ID = 'chat'
+    , CHAT_BOX_ID = 'chat-box'
+
+    , CMD_ID = 'cmd'
+
+    , PANEL_ID = 'panel'
+    , PANEL_HEALTH_ID = 'panel-health'
+    , PANEL_SCORE_ID = 'panel-score'
+    , PANEL_RANK_ID = 'panel-rank'
+
+    // дефолтный пользовательский режим
+    , USER_MODE = 'game'
+    // время жизни строки чата (в ms)
+    , CHAT_LINE_TIME = 15000
+    // количество выводимых на экран сообщений
+    , CHAT_LIST_LIMIT = 5
+    // минимально допустимое количество
+    // сообщений в памяти
+    , CHAT_CACHE_MIN = 200
+    // максимально допустимое количество
+    // сообщений в памяти
+    , CHAT_CACHE_MAX = 300
+
     , RADAR_PROPORTION = 0.15
     , RADAR_SCALE_RATIO = 20
     // Частота полной очистки памяти от объектов
@@ -67,6 +91,13 @@ require([
     , back = document.getElementById(CANVAS_BACK_ID)
     , vimp = document.getElementById(CANVAS_VIMP_ID)
     , radar = document.getElementById(CANVAS_RADAR_ID)
+    , chat = document.getElementById(CHAT_ID)
+    , chatBox = document.getElementById(CHAT_BOX_ID)
+    , cmd = document.getElementById(CMD_ID)
+    , panel = document.getElementById(PANEL_ID)
+    , panelHealth = document.getElementById(PANEL_HEALTH_ID)
+    , panelScore = document.getElementById(PANEL_SCORE_ID)
+    , panelRank = document.getElementById(PANEL_RANK_ID)
 
   // TODO: выпилить ненужное!!!!
     , userModel = null
@@ -163,23 +194,39 @@ require([
 
     // старт user
     // TODO: выпилить userModel;
-    userModel = new UserModel();
-    userView = new UserView(window);
+    userModel = new UserModel({
+      chatListLimit: CHAT_LIST_LIMIT,
+      chatLineTime: CHAT_LINE_TIME,
+      chatCacheMin: CHAT_CACHE_MIN,
+      chatCacheMax: CHAT_CACHE_MAX,
+      mode: USER_MODE,
+      panel: ['health', 'score', 'rank']
+    });
+    userView = new UserView(userModel, {
+      window: window,
+      cmd: cmd,
+      chatBox: chatBox,
+      panel: {
+        health: panelHealth,
+        score: panelScore,
+        rank: panelRank
+      }
+    });
     userCtrl = new UserCtrl(userModel, userView);
 
     // старт vimp
     vimpModel = new GameModel();
-    vimpView = new GameView(vimp, vimpModel);
+    vimpView = new GameView(vimpModel, vimp);
     vimpCtrl = new VimpCtrl(vimpModel, vimpView);
 
     // старт back
     backModel = new GameModel();
-    backView = new GameView(back, backModel);
+    backView = new GameView(backModel, back);
     backCtrl = new BackCtrl(backModel, backView);
 
     // старт radar
     radarModel = new GameModel();
-    radarView = new GameView(radar, radarModel);
+    radarView = new GameView(radarModel, radar);
     radarCtrl = new RadarCtrl(radarModel, radarView);
   }
 
@@ -206,6 +253,7 @@ require([
   }
 
   // ресайз игры
+  // TODO перенести в userView
   function resize(data) {
     var width = data.width
       , height = data.height;
@@ -263,8 +311,8 @@ require([
         // При бездействии пользователя информация на
         // сервер не отправляется
         var emptyArr = false
-          , cmds = []
-          , keys = serverData.keys
+          , gameKeys = []
+          , userKeys = serverData.keys
           , user = serverData.user;
 
         // запуск игры
@@ -280,13 +328,13 @@ require([
 
         // подписка на события от userModel
         userModel.publisher.on('resize', resize);
-        userModel.publisher.on('cmds', function (data) {
-          cmds = data;
+        userModel.publisher.on('gameKeys', function (data) {
+          gameKeys = data;
         });
 
         // загружаем управление пользователя,
         // полученное с сервера
-        userCtrl.updateKeys(keys);
+        userCtrl.updateKeys(userKeys);
 
         // подстраиваем размер под размер пользователя
         userCtrl.resize({
@@ -294,17 +342,24 @@ require([
           height: window.innerHeight
         });
 
+        // TODO Удалить. это нужно для тестов
+        userCtrl.updatePanel({
+          health: 70,
+          score: 945800,
+          rank: 32 + '/' + 8932
+        });
+
         // Счетчик: отправляет данные
         // нажатых клавиш на сервер.
         // Если данных нет, то на сервер
         // поступает пустой массив
         // (но только 1 раз!)
-        Ticker.addEventListener("tick", function () {
-          if (cmds.length !== 0) {
-            socket.emit('cmds', cmds);
+        Ticker.addEventListener('tick', function () {
+          if (gameKeys.length !== 0) {
+            socket.emit('cmds', gameKeys);
             emptyArr = false;
           } else if (emptyArr === false) {
-            socket.emit('cmds', cmds);
+            socket.emit('cmds', gameKeys);
             emptyArr = true;
           }
         });
@@ -313,6 +368,8 @@ require([
         back.style.display = 'block';
         vimp.style.display = 'block';
         radar.style.display = 'block';
+        panel.style.display = 'block';
+        chat.style.display = 'block';
       }
     } else {
       // TODO: авторизация на сервере закончилась

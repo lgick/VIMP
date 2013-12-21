@@ -1,9 +1,18 @@
 extends layout
 block content
   h1#logo= title
+  div#panel
+    table
+      tr
+        td#panel-health
+        td#panel-score
+        td#panel-rank
   canvas#back(width='960', height='600')
   canvas#vimp(width='960', height='600')
   canvas#radar(width='150', height='150')
+  div#chat
+    div#chat-box
+    input#cmd(type='text', maxlength='60')
   div#auth
     div.prompt
       h2= 'hallo sweet user&& Welkome to VIMP!'

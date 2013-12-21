@@ -2,7 +2,7 @@ define(['createjs'], function (createjs) {
   // Объект для инициализации представлений игры
   var Stage = createjs.Stage;
 
-  function GameView(stage, model) {
+  function GameView(model, stage) {
     this._stage = new Stage(stage);
 
     this._model = model;
