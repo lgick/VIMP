@@ -133,7 +133,7 @@ define(['Publisher'], function (Publisher) {
 
   // отправляет сообщение
   UserModel.prototype.sendMessage = function (message) {
-    this.publisher.emit('message', message);
+    this.publisher.emit('chat', message);
   };
 
   // размеры игры

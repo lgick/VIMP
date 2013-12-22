@@ -50,12 +50,6 @@ define([], function () {
       if (key === 'enter') {
         // тест для сообщений
         if (cmd.value) {
-          // TODO: выпилить
-          this.updateChat({
-            name: 'User',
-            text: cmd.value
-          });
-
           this._model.sendMessage(cmd.value);
         }
 
@@ -97,7 +91,9 @@ define([], function () {
 
   // обновляет чат-лист
   UserCtrl.prototype.updateChat = function (message) {
-    this._model.addMessage(message);
+    if (typeof message === 'object') {
+      this._model.addMessage(message);
+    }
   };
 
   // добавляет таймер

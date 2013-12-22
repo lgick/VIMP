@@ -12,11 +12,9 @@ define(['Publisher'], function (Publisher) {
     this._window = data.window;
     this._cmd = data.cmd;
     this._chatBox = data.chatBox;
-    this._panel = {
-      health: data.panel.health,
-      score: data.panel.score,
-      rank: data.panel.rank
-    };
+    this._panelHealth = data.panelHealth;
+    this._panelScore = data.panelScore;
+    this._panelRank = data.panelRank;
 
     this.publisher = new Publisher();
 
@@ -116,17 +114,17 @@ define(['Publisher'], function (Publisher) {
 
   // обновляет пользовательскую панель (здоровье)
   UserView.prototype.updateHealth = function (health) {
-    this._panel.health.innerHTML = health + '%';
+    this._panelHealth.innerHTML = health + '%';
   };
 
   // обновляет пользовательскую панель (счет)
   UserView.prototype.updateScore = function (score) {
-    this._panel.score.innerHTML = score;
+    this._panelScore.innerHTML = score;
   };
 
   // обновляет пользовательскую панель (рейтинг)
   UserView.prototype.updateRank = function (rank) {
-    this._panel.rank.innerHTML = rank;
+    this._panelRank.innerHTML = rank;
   };
 
   return UserView;

@@ -20,9 +20,9 @@ require([
 
   var window = this
     , localStorage = window.localStorage
-    , userName = localStorage.userName
-    , userColorA = localStorage.userColorA
-    , userColorB = localStorage.userColorB
+    , userName = localStorage.userName || ''
+    , userColorA = localStorage.userColorA || '#333333'
+    , userColorB = localStorage.userColorB || '#444444'
 
     , document = window.document
 
@@ -30,64 +30,87 @@ require([
     , LoadQueue = createjs.LoadQueue
     , Ticker = createjs.Ticker
 
+      // AUTH MODEL
+    , AUTH_REGEXP_NAME = /^[a-zA-Z]([\w\s#]{0,13})[\w]{1}$/
+    , AUTH_REGEXP_COLOR = /^#(?:[0-9a-fA-F]{3}){1,2}$/
+    , AUTH_REGEXP_MODEL = /Ship/
+
+      // AUTH VIEW
+    , AUTH_ID = 'auth'
+    , AUTH_NAME_ID = 'auth-name'
+    , AUTH_COLORS_ID = 'auth-colors'
+    , AUTH_COLOR_RADIO_ID = 'auth-color-radio'
+    , AUTH_COLOR_INPUT_ID = 'auth-color-input'
+    , AUTH_COLOR_PREVIEW_ID = 'auth-color-preview'
+    , AUTH_ERROR_ID = 'auth-error'
+    , AUTH_ENTER_ID = 'auth-enter'
+    , AUTH_COLOR_TYPE = 'colorA'
+
+      // MODULE ID
     , CANVAS_BACK_ID = 'back'
     , CANVAS_VIMP_ID = 'vimp'
     , CANVAS_RADAR_ID = 'radar'
-
-    , CHAT_ID = 'chat'
-    , CHAT_BOX_ID = 'chat-box'
-
-    , CMD_ID = 'cmd'
-
     , PANEL_ID = 'panel'
+    , CHAT_ID = 'chat'
+
+      // USER MODEL
+    , CHAT_LIST_LIMIT = 5    // количество выводимых на экран сообщений
+    , CHAT_LINE_TIME = 15000 // время жизни строки чата (в ms)
+    , CHAT_CACHE_MIN = 200   // минимально допустимое количество сообщений в памяти
+    , CHAT_CACHE_MAX = 300   // максимально допустимое количество сообщений в памяти
+    , USER_MODE = 'game'     // дефолтный пользовательский режим
+    , USER_PANEL = ['health', 'score', 'rank']  // пользовательская панель
+
+      // USER VIEW
+    , CHAT_BOX_ID = 'chat-box'
+    , CMD_ID = 'cmd'
     , PANEL_HEALTH_ID = 'panel-health'
     , PANEL_SCORE_ID = 'panel-score'
     , PANEL_RANK_ID = 'panel-rank'
 
-    // дефолтный пользовательский режим
-    , USER_MODE = 'game'
-    // время жизни строки чата (в ms)
-    , CHAT_LINE_TIME = 15000
-    // количество выводимых на экран сообщений
-    , CHAT_LIST_LIMIT = 5
-    // минимально допустимое количество
-    // сообщений в памяти
-    , CHAT_CACHE_MIN = 200
-    // максимально допустимое количество
-    // сообщений в памяти
-    , CHAT_CACHE_MAX = 300
+
 
     , RADAR_PROPORTION = 0.15
     , RADAR_SCALE_RATIO = 20
-    // Частота полной очистки памяти от объектов
-    // Измеряется в количестве обновлений поступивших
-    // с сервера.
-    // Чем выше этот параметр, тем больше будет
-    // объектов храниться в памяти и тем проще будет с
-    // ними работать.
-    // После достижения лимита вся память будет очищена
-    // и объекты будут создаваться заново
+
+      // Частота полной очистки памяти от объектов
+      // Измеряется в количестве обновлений поступивших
+      // с сервера.
+      // Чем выше этот параметр, тем больше будет
+      // объектов храниться в памяти и тем проще будет с
+      // ними работать.
+      // После достижения лимита вся память будет очищена
+      // и объекты будут создаваться заново
     , LIMIT_ITERATION = 100
 
     , loader
-    // TODO: перенести это на сервер
-    // и выдавать в случае удачной авторизации
+      // TODO: перенести это на сервер
+      // и выдавать в случае удачной авторизации
     , manifest = [
-      {
-        id: 'background',
-        src: '/vimp/images/space.jpg',
-        width: 500,
-        height: 500
-      }
-    ]
+        {
+          id: 'background',
+          src: '/vimp/images/space.jpg',
+          width: 500,
+          height: 500
+        }
+      ]
 
-    // число обновлений с сервера
+      // число обновлений с сервера
     , iterations = 0
 
-    // кеш данных пользователя при последнем обновлении
+      // кеш данных пользователя при последнем обновлении
     , vimpUserCache = null
     , radarUserCache = null
 
+      // DOM
+    , auth = document.getElementById(AUTH_ID)
+    , authName = document.getElementById(AUTH_NAME_ID)
+    , authColors = document.getElementById(AUTH_COLORS_ID)
+    , authColorRadio = document.getElementById(AUTH_COLOR_RADIO_ID)
+    , authColorInput = document.getElementById(AUTH_COLOR_INPUT_ID)
+    , authColorPreview = document.getElementById(AUTH_COLOR_PREVIEW_ID)
+    , authError = document.getElementById(AUTH_ERROR_ID)
+    , authEnter = document.getElementById(AUTH_ENTER_ID)
     , back = document.getElementById(CANVAS_BACK_ID)
     , vimp = document.getElementById(CANVAS_VIMP_ID)
     , radar = document.getElementById(CANVAS_RADAR_ID)
@@ -99,7 +122,7 @@ require([
     , panelScore = document.getElementById(PANEL_SCORE_ID)
     , panelRank = document.getElementById(PANEL_RANK_ID)
 
-  // TODO: выпилить ненужное!!!!
+      // TODO: выпилить ненужное!!!!
     , userModel = null
     , userCtrl = null
 
@@ -112,28 +135,25 @@ require([
   (function () {
     var authModel
       , authView
-      , authCtrl
-      , name = userName || ''
-      , colorA = userColorA || '#333333'
-      , colorB = userColorB || '#444444';
+      , authCtrl;
 
     authModel = new AuthModel({
-      name: /^[a-zA-Z]([\w\s#]{0,13})[\w]{1}$/,
-      color: /^#(?:[0-9a-fA-F]{3}){1,2}$/,
-      model: /Ship/
+      name: AUTH_REGEXP_NAME,
+      color: AUTH_REGEXP_COLOR,
+      model: AUTH_REGEXP_MODEL
     });
     authView = new AuthView(authModel, {
-      auth: document.getElementById('auth'),
-      name: document.getElementById('auth-name'),
-      colorsSelect: document.getElementById('auth-colors'),
-      colorRadio: document.getElementById('auth-color-radio'),
-      colorInput: document.getElementById('auth-color-input'),
-      colorPreview: document.getElementById('auth-color-preview'),
+      auth: auth,
+      name: authName,
+      colorsSelect: authColors,
+      colorRadio: authColorRadio,
+      colorInput: authColorInput,
+      colorPreview: authColorPreview,
       // TODO: colorType нарушает структуру MVC,
       // но существенно упрощает код
-      colorType: 'colorA',
-      error: document.getElementById('auth-error'),
-      enter: document.getElementById('auth-enter')
+      colorType: AUTH_COLOR_TYPE,
+      error: authError,
+      enter: authEnter
     });
     authCtrl = new AuthCtrl(authModel, authView);
 
@@ -145,8 +165,8 @@ require([
         scaleX: 1.4,
         scaleY: 1.4,
         rotation: 270,
-        colorA: colorA,
-        colorB: colorB
+        colorA: userColorA,
+        colorB: userColorB
       },
       ship2: {
         constructor: 'Ship',
@@ -155,15 +175,15 @@ require([
         scaleX: 1.4,
         scaleY: 1.4,
         rotation: 270,
-        colorA: colorA,
-        colorB: colorB
+        colorA: userColorA,
+        colorB: userColorB
       }
     });
 
     authCtrl.parseData([
-      {name: 'name', type: 'name', value: name},
-      {name: 'colorA', type: 'color', value: colorA},
-      {name: 'colorB', type: 'color', value: colorB},
+      {name: 'name', type: 'name', value: userName},
+      {name: 'colorA', type: 'color', value: userColorA},
+      {name: 'colorB', type: 'color', value: userColorB},
       {name: 'model', type: 'model', value: 'Ship'}
     ]);
 
@@ -200,17 +220,15 @@ require([
       chatCacheMin: CHAT_CACHE_MIN,
       chatCacheMax: CHAT_CACHE_MAX,
       mode: USER_MODE,
-      panel: ['health', 'score', 'rank']
+      panel: USER_PANEL
     });
     userView = new UserView(userModel, {
       window: window,
       cmd: cmd,
       chatBox: chatBox,
-      panel: {
-        health: panelHealth,
-        score: panelScore,
-        rank: panelRank
-      }
+      panelHealth: panelHealth,
+      panelScore: panelScore,
+      panelRank: panelRank
     });
     userCtrl = new UserCtrl(userModel, userView);
 
@@ -313,6 +331,7 @@ require([
         var emptyArr = false
           , gameKeys = []
           , userKeys = serverData.keys
+          , userPanel = serverData.panel
           , user = serverData.user;
 
         // запуск игры
@@ -331,22 +350,22 @@ require([
         userModel.publisher.on('gameKeys', function (data) {
           gameKeys = data;
         });
+        userModel.publisher.on('chat', function (message) {
+          socket.emit('chat', {
+            name: userName,
+            text: message
+          });
+        });
 
-        // загружаем управление пользователя,
+        // загружаем пользовательские настройки,
         // полученное с сервера
         userCtrl.updateKeys(userKeys);
+        userCtrl.updatePanel(userPanel);
 
         // подстраиваем размер под размер пользователя
         userCtrl.resize({
           width: window.innerWidth,
           height: window.innerHeight
-        });
-
-        // TODO Удалить. это нужно для тестов
-        userCtrl.updatePanel({
-          health: 70,
-          score: 945800,
-          rank: 32 + '/' + 8932
         });
 
         // Счетчик: отправляет данные
@@ -382,23 +401,34 @@ require([
     // TODO: в будещем использование WebWorker
     var i;
 
-    // обновление фона
-    // Это срабатывает только когда переместился
-    // пользователь. Другие игроки не должны влиять на
-    // координаты и вызывать этот метод
-    // Эти вычисления должны производится до обновления
-    // модели игрока (т.к. используются как старые
-    // так и новые данные)
-    // вычисляет данные для фона игры
+    // обновление данных игрока
     if (data[userName]) {
+      // ОБНОВЛЕНИЕ ФОНА
+      // Это срабатывает только когда переместился
+      // пользователь. Другие игроки не должны влиять на
+      // координаты и вызывать этот метод
+      // Эти вычисления должны производится до обновления
+      // модели игрока (т.к. используются как старые
+      // так и новые данные)
+      // вычисляет данные для фона игры
       backCtrl.updateCoords({
         oldData: vimpUserCache,
         newData: data[userName]['vimp']['player']
       });
 
-      // кеширование
+      // КЕШИРОВАНИЕ
       vimpUserCache = data[userName]['vimp']['player'];
       radarUserCache = data[userName]['radar'];
+
+      // ОБНОВЛЕНИЕ ЧАТА
+      if (data[userName]['chat']) {
+        userCtrl.updateChat(data[userName]['chat']);
+      }
+
+      // ОБНОВЛЕНИЕ ПАНЕЛИ
+      if (data[userName]['panel']) {
+        userCtrl.updatePanel(data[userName]['panel']);
+      }
     }
 
     // очистка памяти от объектов
