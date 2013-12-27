@@ -320,11 +320,11 @@ require([
 
       // загрузка графических файлов
       loader = new LoadQueue(false);
-      loader.onComplete = handleComplete;
+
       loader.loadManifest(manifest);
 
-      // загрузка данных завершена
-      function handleComplete() {
+      // функция после загрузки данных
+      loader.onComplete = function () {
         // флаг при отправке пустого массива
         // При бездействии пользователя информация на
         // сервер не отправляется
