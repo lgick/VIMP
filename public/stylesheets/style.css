@@ -1,24 +1,33 @@
 @charset "UTF-8";
 
 html, body {
+  width: 100%;
+  height: 100%;
   padding: 0;
   margin: 0;
 }
 
-html {
-  width: 100%;
-  height: 100%;
-}
-
 body {
-  width: 100%;
-  height: 100%;
-  margin: 0;
   background-color: #000;
   color: #ccc;
   font-family: "Lucida Grande", Helvetica, Arial, Verdana, sans-serif;
   font-size: 12px;
   line-height: 16px;
+}
+
+#panel {
+  display: none;
+  text-transform: uppercase;
+  text-align: center;
+  font-size: 11px;
+  line-height: 14px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 20%;
+  height: 40px;
+  padding-left: 80px;
+  z-index: 2;
 }
 
 #logo {
@@ -30,22 +39,7 @@ body {
   width: 70px;
   height: 30px;
   margin: 0;
-  z-index: 5;
   text-align: center;
-}
-
-#panel {
-  display: none;
-  text-transform: uppercase;
-  text-align: center;
-  font-size: 11px;
-  line-height: 14px;
-  position: absolute;
-  top: 0;
-  left: 80px;
-  right: 20%;
-  height: 40px;
-  z-index: 2;
 }
 
 #panel table {
@@ -147,38 +141,47 @@ body {
 
 #auth {
   display: none;
-  background-color: #000;
+  background-color: #222;
   position: absolute;
   width: 100%;
-  height: 100%;
+  min-height: 100%;
   top: 0;
   left: 0;
   z-index: 4;
 }
 
-#auth .prompt {
-  width: 500px;
-  height: 330px;
+#auth-form {
+  background-color: #333;
+  width: 350px;
   margin: 10px auto;
-  border: 1px solid #fff;
+  border: 1px solid #eee;
+  text-shadow: 1px 1px 1px #000;
   padding: 15px;
+  font-size: 12px;
+  line-height: 15px;
 }
 
-#auth .prompt > div {
+#auth-form h2 {
+  font-size: 24px;
+  line-height: 30px;
+  margin: 0 0 10px 0;
+  text-align: center;
+}
+
+#auth-form > div {
   padding: 10px;
 }
 
-#auth .prompt #auth-name {
-  width: 112px;
-  margin-left: 15px;
+#auth-name-input {
+  margin-left: 10px;
 }
 
 #auth-colors {
-  height: 155px;
+  overflow: auto;
 }
 
 #auth-colors .color-select {
-  width: 153px;
+  width: 130px;
   float: left;
 }
 
@@ -211,36 +214,36 @@ body {
 }
 
 #auth-colors .color-custom {
-  width: 187px;
   height: 57px;
-  margin-left: 153px;
+  margin: 10px 0 10px 130px;
 }
 
-#auth-colors .color-custom #auth-color-input {
+#auth-color-input {
   margin-top: 13px;
   width: 123px;
 }
 
-#auth-colors #auth-color-preview {
-  margin-left: 25px;
-}
-
 #auth-color-switcher {
-  float: right;
-  width: 112px;
+  margin-left: 130px;
 }
 
-#auth .prompt #auth-error {
-  clear: both;
-  color: #ff0000;
+#auth-models {
+  overflow: auto;
+}
+
+#auth-models div {
+  float: left;
+  margin-right: 70px;
+}
+
+#auth-error {
+  color: #e00;
   font-size: 12px;
   line-height: 15px;
-  font-weight: bold;
-  height: 30px;
+  min-height: 30px;
 }
 
-#auth .prompt #auth-enter {
-  clear: both;
+#auth-enter {
   display: block;
   margin: auto;
 }

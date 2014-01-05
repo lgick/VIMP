@@ -11,78 +11,73 @@ define([], function () {
 
     this._model = model;
     this._view = view;
+
     this._vPublic = view.publisher;
 
-    this._vPublic.on('change', 'updateForm', authCtrl);
-    this._vPublic.on('focus', 'switchInput', authCtrl);
-    this._vPublic.on('type', 'switchType', authCtrl);
-    this._vPublic.on('color', 'updateModels', authCtrl)
-    this._vPublic.on('ready', 'verifyData', authCtrl);
+    this._vPublic.on('input', 'update', this);
+    this._vPublic.on('preview', 'createPreview', this);
+    this._vPublic.on('enter', 'send', this);
   }
 
-  // обновление данных
-  AuthCtrl.prototype.updateForm = function (data) {
-    this._model.validate(data);
-  };
-
-  // переключение на пользовательски ввод
-  AuthCtrl.prototype.switchInput = function (data) {
-    if (data.type === 'color') {
-      this._view.switchInput(data.value);
-      this.updateForm(data);
-    }
-  };
-
-  // переключения значение типа (для цвета)
-  AuthCtrl.prototype.switchType = function (data) {
-    this._view.switchType(data.name);
-    // отправка на валидацию с пустым value
-    // чтобы модель вернула текущее значение в view
-    this.updateForm(data);
-  };
-
-  // преобразует исходные данные для валидации
-  AuthCtrl.prototype.parseData = function (data) {
+  // инициализация
+  AuthCtrl.prototype.init = function (data) {
     var i = 0
       , len = data.length;
 
     for (; i < len; i += 1) {
-      this._model.validate(data[i]);
+      this.update(data[i]);
+    }
+
+    this._view.showAuth();
+  };
+
+  // обновление
+  AuthCtrl.prototype.update = function (data) {
+    var name = data.name
+      , value = data.value;
+
+    if (name === 'name') {
+      this._model.update('name', data);
+    }
+
+    if (name === 'cType') {
+      this._model.switchCType(data);
+      this._model.update(data.value, {
+        name: 'color',
+        value: null
+      });
+    }
+
+    if (name === 'color') {
+      this._model.update(this._model.getCType(), data);
+    }
+
+    if (name === 'model') {
+      this._model.update('model', data);
     }
   };
 
-  // преобразует данные для создания модели
-  AuthCtrl.prototype.parseModels = function (data) {
-    var gameModel = this._model.gameModel
-      , p;
-
-    for (p in data) {
-      if (data.hasOwnProperty(p)) {
-        if (gameModel.read('models', p)) {
-          gameModel.update('models', p, data[p]);
-        } else {
-          gameModel.create(
-            'models',
-            p,
-            data[p]['constructor'],
-            data[p]
-          );
-        }
+  // визуализация модели
+  AuthCtrl.prototype.createPreview = function () {
+    this._model.createPreview({
+      type: 'auth',
+      name: this._model.getData('model'),
+      constructor: this._model.getData('model'),
+      data: {
+        x: 45,
+        y: 35,
+        scaleX: 2,
+        scaleY: 2,
+        rotation: 270,
+        colorA: this._model.getData('colorA'),
+        colorB: this._model.getData('colorB')
       }
-    }
-
-    this._view.gameView.update();
+    });
   };
 
-  // обновление моделей
-  AuthCtrl.prototype.updateModels = function () {
-    this._model.updateModels('models');
-    this._view.gameView.update();
-  };
-
-  // верификация данных
-  AuthCtrl.prototype.verifyData = function (names) {
-    this._model.verify(names);
+  // отправка данных
+  AuthCtrl.prototype.send = function () {
+    this._model.send();
   };
 
   return AuthCtrl;

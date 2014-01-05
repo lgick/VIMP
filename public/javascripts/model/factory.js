@@ -1,11 +1,13 @@
 define([
   'BackModel',
   'RadarModel',
-  'ShipModel'
+  'HalkModel',
+  'FlatModel'
 ], function (
   Back,
   Radar,
-  Ship
+  Halk,
+  Flat
 ) {
   // Фабрика для строительства объектов игры
   // создает объект игры указанного типа
@@ -46,7 +48,8 @@ define([
   // конструкторы
   Factory._add('Back', Back);
   Factory._add('Radar', Radar);
-  Factory._add('Ship', Ship);
+  Factory._add('Halk', Halk);
+  Factory._add('Flat', Flat);
 
   return Factory;
 });

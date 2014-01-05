@@ -1,7 +1,7 @@
 extends layout
 block content
-  h1#logo= title
   div#panel
+    h1#logo= title
     table
       tr
         td#panel-health
@@ -14,49 +14,56 @@ block content
     div#chat-box
     input#cmd(type='text', maxlength='60')
   div#auth
-    div.prompt
+    div#auth-form
       h2= 'hallo sweet user&& Welkome to VIMP!'
       div
         span= 'Please name:'
-        input#auth-name(type='text', maxlength='15', placeholder='Tom Sawyer')
+        input#auth-name-input(type='text', name='name' maxlength='15', placeholder='Tom Sawyer')
       div#auth-colors
         div.color-select
           span= 'Please your color:'
           br
-          input(type='radio', name='auth-color', value='#ff0000')
+          input(type='radio', name='color', value='#ff0000')
           span.red= 'red'
           br
-          input(type='radio', name='auth-color', value='#ffa500')
+          input(type='radio', name='color', value='#ffa500')
           span.orange= 'orange'
           br
-          input(type='radio', name='auth-color', value='#ffff00')
+          input(type='radio', name='color', value='#ffff00')
           span.yellow= 'yellow'
           br
-          input(type='radio', name='auth-color', value='#008000')
+          input(type='radio', name='color', value='#008000')
           span.green= 'green'
           br
-          input(type='radio', name='auth-color', value='#00ffff')
+          input(type='radio', name='color', value='#00ffff')
           span.cyan= 'cyan'
           br
-          input(type='radio', name='auth-color', value='#0000ff')
+          input(type='radio', name='color', value='#0000ff')
           span.blue= 'blue'
           br
-          input(type='radio', name='auth-color', value='#ee82ee')
+          input(type='radio', name='color', value='#ee82ee')
           span.violet= 'violet'
         div.color-custom
           span= '.. or white it (format: #RrGgBb):'
           br
-          input#auth-color-radio(type='radio', name='auth-color')
-          input#auth-color-input(type='text', name='auth-color', maxlength='7')
+          input#auth-color-input(type='text', name='color', maxlength='7')
         div#auth-color-switcher
-          span= 'Color for:'
+          span= 'color for:'
           br
-          input(type='radio', name='auth-type', value='colorA', checked)
+          input(type='radio', name='cType', value='colorA')
           span= 'body'
           br
-          input(type='radio', name='auth-type', value='colorB')
+          input(type='radio', name='cType', value='colorB')
           span= 'parts'
+      div#auth-models
+        div
+          span= 'Please your model:'
           br
-        canvas#auth-color-preview(width='120', height='80')
+          input(type='radio', name='model', value='Halk')
+          span= 'Halk'
+          br
+          input(type='radio', name='model', value='Flat')
+          span= 'Flat'
+        canvas#auth-preview(width='90', height='70')
       div#auth-error
       input#auth-enter(type='button', autofocus, value='Enter')

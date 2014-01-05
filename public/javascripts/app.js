@@ -1,21 +1,15 @@
 require([
   'io', 'preloadjs', 'createjs',
-  'Publisher',
   'AuthModel', 'AuthView', 'AuthCtrl',
   'UserModel', 'UserView', 'UserCtrl',
   'GameModel', 'GameView',
-  'VimpCtrl', 'BackCtrl', 'RadarCtrl',
-  'Factory',
-  'BackModel', 'ShipModel', 'RadarModel'
+  'VimpCtrl', 'BackCtrl', 'RadarCtrl'
 ], function (
   io, preloadjs, createjs,
-  Publisher,
   AuthModel, AuthView, AuthCtrl,
   UserModel, UserView, UserCtrl,
   GameModel, GameView,
-  VimpCtrl, BackCtrl, RadarCtrl,
-  Factory,
-  BackModel, ShipModel, RadarModel
+  VimpCtrl, BackCtrl, RadarCtrl
 ) {
 
   var window = this
@@ -23,6 +17,7 @@ require([
     , userName = localStorage.userName || ''
     , userColorA = localStorage.userColorA || '#333333'
     , userColorB = localStorage.userColorB || '#444444'
+    , userModelType = localStorage.userModelType || 'Halk'
 
     , document = window.document
 
@@ -31,20 +26,19 @@ require([
     , Ticker = createjs.Ticker
 
       // AUTH MODEL
+    , AUTH_COLOR_TYPE = 'colorA'
     , AUTH_REGEXP_NAME = /^[a-zA-Z]([\w\s#]{0,13})[\w]{1}$/
     , AUTH_REGEXP_COLOR = /^#(?:[0-9a-fA-F]{3}){1,2}$/
-    , AUTH_REGEXP_MODEL = /Ship/
+    , AUTH_REGEXP_MODEL = /^Halk$|^Flat$/
 
       // AUTH VIEW
     , AUTH_ID = 'auth'
-    , AUTH_NAME_ID = 'auth-name'
-    , AUTH_COLORS_ID = 'auth-colors'
-    , AUTH_COLOR_RADIO_ID = 'auth-color-radio'
+    , AUTH_FORM_ID = 'auth-form'
+    , AUTH_NAME_INPUT_ID = 'auth-name-input'
     , AUTH_COLOR_INPUT_ID = 'auth-color-input'
-    , AUTH_COLOR_PREVIEW_ID = 'auth-color-preview'
+    , AUTH_PREVIEW_ID = 'auth-preview'
     , AUTH_ERROR_ID = 'auth-error'
     , AUTH_ENTER_ID = 'auth-enter'
-    , AUTH_COLOR_TYPE = 'colorA'
 
       // MODULE ID
     , CANVAS_BACK_ID = 'back'
@@ -104,11 +98,10 @@ require([
 
       // DOM
     , auth = document.getElementById(AUTH_ID)
-    , authName = document.getElementById(AUTH_NAME_ID)
-    , authColors = document.getElementById(AUTH_COLORS_ID)
-    , authColorRadio = document.getElementById(AUTH_COLOR_RADIO_ID)
-    , authColorInput = document.getElementById(AUTH_COLOR_INPUT_ID)
-    , authColorPreview = document.getElementById(AUTH_COLOR_PREVIEW_ID)
+    , authForm = document.getElementById(AUTH_FORM_ID)
+    , authName = document.getElementById(AUTH_NAME_INPUT_ID)
+    , authColor = document.getElementById(AUTH_COLOR_INPUT_ID)
+    , authPreview = document.getElementById(AUTH_PREVIEW_ID)
     , authError = document.getElementById(AUTH_ERROR_ID)
     , authEnter = document.getElementById(AUTH_ENTER_ID)
     , back = document.getElementById(CANVAS_BACK_ID)
@@ -138,68 +131,41 @@ require([
       , authCtrl;
 
     authModel = new AuthModel({
-      name: AUTH_REGEXP_NAME,
-      color: AUTH_REGEXP_COLOR,
-      model: AUTH_REGEXP_MODEL
+      data: {
+        name: userName,
+        colorA: userColorA,
+        colorB: userColorB,
+        model: userModelType
+      },
+      listExp: {
+        name: AUTH_REGEXP_NAME,
+        colorA: AUTH_REGEXP_COLOR,
+        colorB: AUTH_REGEXP_COLOR,
+        model: AUTH_REGEXP_MODEL
+      },
+      colorType: AUTH_COLOR_TYPE,
+      socket: socket
     });
+
     authView = new AuthView(authModel, {
       auth: auth,
+      form: authForm,
       name: authName,
-      colorsSelect: authColors,
-      colorRadio: authColorRadio,
-      colorInput: authColorInput,
-      colorPreview: authColorPreview,
-      // TODO: colorType нарушает структуру MVC,
-      // но существенно упрощает код
-      colorType: AUTH_COLOR_TYPE,
+      color: authColor,
+      preview: authPreview,
       error: authError,
       enter: authEnter
     });
+
     authCtrl = new AuthCtrl(authModel, authView);
 
-    authCtrl.parseModels({
-      ship: {
-        constructor: 'Ship',
-        x: 30,
-        y: 35,
-        scaleX: 1.4,
-        scaleY: 1.4,
-        rotation: 270,
-        colorA: userColorA,
-        colorB: userColorB
-      },
-      ship2: {
-        constructor: 'Ship',
-        x: 90,
-        y: 35,
-        scaleX: 1.4,
-        scaleY: 1.4,
-        rotation: 270,
-        colorA: userColorA,
-        colorB: userColorB
-      }
-    });
-
-    authCtrl.parseData([
-      {name: 'name', type: 'name', value: userName},
-      {name: 'colorA', type: 'color', value: userColorA},
-      {name: 'colorB', type: 'color', value: userColorB},
-      {name: 'model', type: 'model', value: 'Ship'}
+    // инициализация авторизации
+    authCtrl.init([
+      {name: 'cType', value: AUTH_COLOR_TYPE},
+      {name: 'name', value: userName},
+      {name: 'color', value: userColorA},
+      {name: 'model', value: userModelType}
     ]);
-
-    authView.showAuth();
-
-    // при поступлении новых данных:
-    // - отправка данных на сервер
-    authModel.publisher.on('ready', function (data) {
-      socket.emit('user', data);
-      // имя и цвет
-      // в переменные(переменные используются!)
-      // и в хранилище
-      userName = localStorage.userName = data.name;
-      userColorA = localStorage.userColorA = data.colorA;
-      userColorB = localStorage.userColorB = data.colorB;
-    });
   }());
 
   // стартует игру
@@ -317,6 +283,11 @@ require([
   socket.on('auth', function (serverData) {
     // если активация на сервере прошла успешно
     if (serverData.auth === true) {
+      // запись авторизационных данных в хранилище
+      userName = localStorage.userName = serverData.user.name;
+      userColorA = localStorage.userColorA = serverData.user.colorA;
+      userColorB = localStorage.userColorB = serverData.user.colorB;
+      userModelType = localStorage.userModelType = serverData.user.model;
 
       // загрузка графических файлов
       loader = new LoadQueue(false);
@@ -332,18 +303,18 @@ require([
           , gameKeys = []
           , userKeys = serverData.keys
           , userPanel = serverData.panel
-          , user = serverData.user;
+          , game = serverData.game;
 
         // запуск игры
         startGame();
 
         // создание игрока пользователя
-        vimpCtrl.parse(userName, user['vimp']);
-        radarCtrl.parse(userName, user['radar']);
+        vimpCtrl.parse(userName, game['vimp']);
+        radarCtrl.parse(userName, game['radar']);
 
         // кеширование
-        vimpUserCache = user['vimp']['player'];
-        radarUserCache = user['radar'];
+        vimpUserCache = game['vimp']['player'];
+        radarUserCache = game['radar'];
 
         // подписка на события от userModel
         userModel.publisher.on('resize', resize);

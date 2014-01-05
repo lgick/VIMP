@@ -6,7 +6,7 @@ define([
   // Singleton AuthView
   var authView;
 
-  function AuthView(model, elements) {
+  function AuthView(model, data) {
     if (authView) {
       return authView;
     }
@@ -15,74 +15,40 @@ define([
 
     this._mPublic = model.publisher;
 
-    this._auth = elements.auth;
-    this._name = elements.name;
-    this._colorsSelect = elements.colorsSelect;
-    this._colorRadio = elements.colorRadio;
-    this._colorInput = elements.colorInput;
-    this._colorPreview = elements.colorPreview;
-    // TODO: this._colorType нарушает структуру MVC,
-    // но существенно упрощает код
-    this._colorType = elements.colorType;
-    this._error = elements.error;
-    this._enter = elements.enter;
+    this._auth = data.auth;
+    this._form = data.form;
+    this._name = data.name;
+    this._color = data.color;
+    this._error = data.error;
+    this._enter = data.enter;
+
+    this._gameView = new GameView(
+      model.gameModel, data.preview
+    );
 
     this.publisher = new Publisher();
 
-    this.gameView = new GameView(
-      model.gameModel, this._colorPreview
-    );
+    // действие с инпутами
+    this._form.onchange = function (e) {
+      var tg = e.target;
 
-    // изменение имени
-    this._name.onchange = function () {
-      authView.publisher.emit('change', {
-        name: 'name',
-        type: 'name',
-        value: authView._name.value
-      });
-    };
-
-    // фокус на поле ввода цвета
-    this._colorInput.onfocus = function () {
-      var color = authView._colorInput.value ||
-                  authView._colorRadio.value;
-
-      authView.publisher.emit('focus', {
-        name: authView._colorType,
-        type: 'color',
-        value: color
-      });
-    };
-
-    // действие с радиокнопками или полем ввода цвета
-    this._colorsSelect.onchange = function (e) {
-      if (e.target.name === 'auth-color') {
-        authView.publisher.emit('change', {
-          name: authView._colorType,
-          type: 'color',
-          value: e.target.value
-        });
-      }
-
-      if (e.target.name === 'auth-type') {
-        authView.publisher.emit('type', {
-          name: e.target.value,
-          type: 'color',
-          value: ''
+      if (tg.tagName === 'INPUT') {
+        authView.publisher.emit('input', {
+          name: tg.name,
+          value: tg.value
         });
       }
     };
 
     // форма заполнена
-    this._enter.onclick = function() {
-      authView.publisher.emit('ready', [
-        'name', 'colorA', 'colorB', 'model'
-      ]);
+    this._enter.onclick = function () {
+      authView.publisher.emit('enter');
     };
 
-    this._mPublic.on('update', 'updateForm', authView);
-    this._mPublic.on('error', 'readErr', authView);
-    this._mPublic.on('ready', 'hideAuth', authView);
+    this._mPublic.on('form', 'renderData', this);
+    this._mPublic.on('preview', 'renderPreview', this);
+    this._mPublic.on('error', 'renderError', this);
+    this._mPublic.on('ok', 'hideAuth', this);
   }
 
   // показывает форму
@@ -95,50 +61,62 @@ define([
     this._auth.style.display = 'none';
   };
 
-  // пользовательский ввод цвета
-  AuthView.prototype.switchInput = function (color) {
-    this._colorRadio.checked = true;
-    this._colorInput.value = color;
-  };
-
-  // переключает значение типа цвета
-  AuthView.prototype.switchType = function (type) {
-    this._colorType = type;
-  };
-
-  // обрабатывает ошибки
-  AuthView.prototype.readErr = function (bugs) {
-    var i = 0
-      , len = bugs.length
-      , message = '';
-
-    for (; i < len; i += 1) {
-      message += 'Please ' + bugs[i].name + '!<br>';
-    }
-
-    this._error.innerHTML = message;
-  };
-
   // обновляет форму
-  AuthView.prototype.updateForm = function (data) {
+  AuthView.prototype.renderData = function (data) {
     var name = data.name
-      , type = data.type
-      , value = data.value;
+      , value = data.value
+      , list = this._form.querySelectorAll('input')
+      , i = 0
+      , len = list.length;
 
     this._error.innerHTML = '';
 
-    if (type === 'color') {
-      if (name === this._colorType) {
-        this._colorInput.value = value;
-        this._colorRadio.value = value;
-
-        this.publisher.emit('color');
-      }
-    }
-
-    if (type === 'name') {
+    if (name === 'name') {
       this._name.value = value;
     }
+
+    if (name === 'color') {
+      this._color.value = value;
+
+      // запрос на перерисовку модели
+      this.publisher.emit('preview');
+    }
+
+    if (name === 'model') {
+      // запрос на перерисовку модели
+      this.publisher.emit('preview');
+    }
+
+    // делает активной нужную радиокнопку
+    for (; i < len; i += 1) {
+      if (list[i].name === name) {
+        if (list[i].value === value) {
+          list[i].checked = true;
+        } else {
+          list[i].checked = false;
+        }
+      }
+    }
+  };
+
+  // обновляет визуализацию
+  AuthView.prototype.renderPreview = function () {
+    this._gameView.update();
+  };
+
+  // отображает ошибки
+  AuthView.prototype.renderError = function (bugs) {
+    var i = 0
+      , len = bugs.length
+      , message = ''
+      , error;
+
+    for (; i < len; i += 1) {
+      error = bugs[i].name.toUpperCase();
+      message += error +  ' is not correctly!<br>';
+    }
+
+    this._error.innerHTML = message;
   };
 
   return AuthView;
