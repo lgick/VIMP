@@ -15,14 +15,29 @@ define(['Publisher'], function (Publisher) {
     this._chatLineTime = data.chatLineTime;
     this._mode = data.mode;
     this._panel = data.panel;
+    this._sizeRatio = data.sizeRatio;
+
+    this._socket = data.socket;
+    this._ticker = data.ticker;
 
     this._chatCache = []; // хранилище сообщений
     this._chatList = [];  // активный чат-лист
-    this._keys = [];      // текущие команды в игре
     this._count = 0;      // id для сообщения чат-листа
+    this._keys = [];      // текущие команды в игре
+    this._noKeys = false; // флаг отправки пустых команд
 
     this.publisher = new Publisher();
   }
+
+  // инициализация
+  UserModel.prototype.init = function () {
+    var that = this;
+
+    // запуск счетчика игры
+    this._ticker.addEventListener('tick', function () {
+      that.sendKeys();
+    });
+  };
 
   // возвращает текущий режим
   UserModel.prototype.getMode = function () {
@@ -44,8 +59,6 @@ define(['Publisher'], function (Publisher) {
     }
 
     this._keys.push(key);
-
-    this.publisher.emit('gameKeys', this._keys);
   };
 
   // удаляет команду
@@ -57,15 +70,27 @@ define(['Publisher'], function (Publisher) {
     }
 
     this._keys.splice(index, 1);
-
-    this.publisher.emit('gameKeys', this._keys);
   };
 
   // очищает список команд
   UserModel.prototype.clearGameKey = function () {
     this._keys = [];
+  };
 
-    this.publisher.emit('gameKeys', this._keys);
+  // отправляет список команд на сервер
+  // Если данных нет, то на сервер поступает
+  // пустой массив (но только 1 раз!)
+  UserModel.prototype.sendKeys = function () {
+    // если массив команд не пуст
+    if (this._keys.length !== 0) {
+      this._socket.emit('cmds', this._keys);
+      this._noKeys = false;
+    // иначе, если флаг неактивен,
+    // отправить пустой массив команд
+    } else if (this._noKeys === false) {
+      this._socket.emit('cmds', this._keys);
+      this._noKeys = true;
+    }
   };
 
   // добавляет сообщение
@@ -116,6 +141,11 @@ define(['Publisher'], function (Publisher) {
     }
   };
 
+  // отправляет сообщение
+  UserModel.prototype.sendMessage = function (message) {
+    this._socket.emit('chat', message);
+  };
+
   // обновляет данные панели пользователя
   UserModel.prototype.updatePanel = function (data) {
     var i = 0
@@ -131,14 +161,25 @@ define(['Publisher'], function (Publisher) {
     }
   };
 
-  // отправляет сообщение
-  UserModel.prototype.sendMessage = function (message) {
-    this.publisher.emit('chat', message);
-  };
-
   // размеры игры
-  UserModel.prototype.resize = function (data) {
-    this.publisher.emit('resize', data);
+  UserModel.prototype.resize = function (key, data) {
+    var width = data.width
+      , height = data.height
+      , sizes = {}
+      , ratio
+      , i = 0
+      , len = key.length;
+
+    for (; i < len; i += 1) {
+      ratio = this._sizeRatio[key[i]] || 1;
+
+      sizes[key[i]] = {
+        width: Math.round(width * ratio),
+        height: Math.round(height * ratio)
+      };
+    }
+
+    this.publisher.emit('resize', sizes);
   };
 
   return UserModel;

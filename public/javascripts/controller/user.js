@@ -16,10 +16,20 @@ define([], function () {
 
     this._vPublic.on('keyDown', 'add', this);
     this._vPublic.on('keyUp', 'remove', this);
-    this._vPublic.on('resize', 'resize', this);
     this._vPublic.on('newTimer', 'createTimer', this);
     this._vPublic.on('oldTimer', 'removeTimer', this);
+    this._vPublic.on('resize', 'resize', this);
   }
+
+  // инициализация
+  UserCtrl.prototype.init = function (data) {
+    this.updateKeys(data.keys);
+    this.updatePanel(data.panel);
+    this.resize(data.size);
+
+    this._model.init();
+    this._view.init();
+  };
 
   // добавляет команду
   UserCtrl.prototype.add = function (data) {
@@ -54,7 +64,6 @@ define([], function () {
         }
 
         this._model.switchMode('game');
-
         return;
       }
     }
@@ -78,12 +87,12 @@ define([], function () {
     var keys = this._keys[mode]
         // преобразование в строку
       , key = keyCode.toString()
-      , i;
+      , p;
 
-    for (i in keys) {
-      if (keys.hasOwnProperty(i)) {
-        if (i === key) {
-          return keys[i];
+    for (p in keys) {
+      if (keys.hasOwnProperty(p)) {
+        if (p === key) {
+          return keys[p];
         }
       }
     }
@@ -124,7 +133,9 @@ define([], function () {
 
   // обновляет размеры
   UserCtrl.prototype.resize = function (data) {
-    this._model.resize(data);
+    var key = ['vimp', 'back', 'radar'];
+
+    this._model.resize(key, data);
   };
 
   return UserCtrl;

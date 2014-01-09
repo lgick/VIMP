@@ -23,7 +23,7 @@ require([
 
     , socket = io.connect('http://localhost:3000')
     , LoadQueue = createjs.LoadQueue
-    , Ticker = createjs.Ticker
+    , ticker = createjs.Ticker
 
       // AUTH MODEL
     , AUTH_COLOR_TYPE = 'colorA'
@@ -53,7 +53,8 @@ require([
     , CHAT_CACHE_MIN = 200   // минимально допустимое количество сообщений в памяти
     , CHAT_CACHE_MAX = 300   // максимально допустимое количество сообщений в памяти
     , USER_MODE = 'game'     // дефолтный пользовательский режим
-    , USER_PANEL = ['health', 'score', 'rank']  // пользовательская панель
+    , USER_PANEL = ['health', 'score', 'rank']     // пользовательская панель
+    , SIZE_RATIO = {vimp: 1, back: 1, radar: 0.15} // пропорции элементов при ресайзе
 
       // USER VIEW
     , CHAT_BOX_ID = 'chat-box'
@@ -64,7 +65,6 @@ require([
 
 
 
-    , RADAR_PROPORTION = 0.15
     , RADAR_SCALE_RATIO = 20
 
       // Частота полной очистки памяти от объектов
@@ -115,7 +115,6 @@ require([
     , panelScore = document.getElementById(PANEL_SCORE_ID)
     , panelRank = document.getElementById(PANEL_RANK_ID)
 
-      // TODO: выпилить ненужное!!!!
     , userModel = null
     , userCtrl = null
 
@@ -179,19 +178,26 @@ require([
       , radarView;
 
     // старт user
-    // TODO: выпилить userModel;
     userModel = new UserModel({
       chatListLimit: CHAT_LIST_LIMIT,
       chatLineTime: CHAT_LINE_TIME,
       chatCacheMin: CHAT_CACHE_MIN,
       chatCacheMax: CHAT_CACHE_MAX,
       mode: USER_MODE,
-      panel: USER_PANEL
+      panel: USER_PANEL,
+      sizeRatio: SIZE_RATIO,
+      socket: socket,
+      ticker: ticker
     });
     userView = new UserView(userModel, {
       window: window,
+      back: back,
+      vimp: vimp,
+      radar: radar,
       cmd: cmd,
+      chat: chat,
       chatBox: chatBox,
+      panel: panel,
       panelHealth: panelHealth,
       panelScore: panelScore,
       panelRank: panelRank
@@ -215,10 +221,10 @@ require([
   }
 
   // отрисовывает фон игры при ресайзе
-  function drawBack(width, height) {
+  function drawBack(data) {
     var img = loader.getItem('background');
 
-    if (img) {
+    if (img && data['back']) {
       // очищает back
       backCtrl.remove()
 
@@ -227,8 +233,8 @@ require([
         back: {
           constructor: 'Back',
           image: loader.getResult('background'),
-          width: width,
-          height: height,
+          width: data['back'].width,
+          height: data['back'].height,
           imgWidth: img.width,
           imgHeight: img.height
         }
@@ -237,22 +243,8 @@ require([
   }
 
   // ресайз игры
-  // TODO перенести в userView
   function resize(data) {
-    var width = data.width
-      , height = data.height;
-
-    back.width = width;
-    back.height = height;
-
-    // создание нового фона с учетом новых размеров
-    drawBack(back.width, back.height);
-
-    vimp.width = width;
-    vimp.height = height;
-
-    radar.width = radar.height =
-      Math.round(width * RADAR_PROPORTION);
+    drawBack(data);
 
     gameUpdateAllView();
   }
@@ -296,14 +288,7 @@ require([
 
       // функция после загрузки данных
       loader.onComplete = function () {
-        // флаг при отправке пустого массива
-        // При бездействии пользователя информация на
-        // сервер не отправляется
-        var emptyArr = false
-          , gameKeys = []
-          , userKeys = serverData.keys
-          , userPanel = serverData.panel
-          , game = serverData.game;
+        var game = serverData.game;
 
         // запуск игры
         startGame();
@@ -316,50 +301,17 @@ require([
         vimpUserCache = game['vimp']['player'];
         radarUserCache = game['radar'];
 
-        // подписка на события от userModel
         userModel.publisher.on('resize', resize);
-        userModel.publisher.on('gameKeys', function (data) {
-          gameKeys = data;
-        });
-        userModel.publisher.on('chat', function (message) {
-          socket.emit('chat', {
-            name: userName,
-            text: message
-          });
-        });
 
-        // загружаем пользовательские настройки,
-        // полученное с сервера
-        userCtrl.updateKeys(userKeys);
-        userCtrl.updatePanel(userPanel);
-
-        // подстраиваем размер под размер пользователя
-        userCtrl.resize({
-          width: window.innerWidth,
-          height: window.innerHeight
-        });
-
-        // Счетчик: отправляет данные
-        // нажатых клавиш на сервер.
-        // Если данных нет, то на сервер
-        // поступает пустой массив
-        // (но только 1 раз!)
-        Ticker.addEventListener('tick', function () {
-          if (gameKeys.length !== 0) {
-            socket.emit('cmds', gameKeys);
-            emptyArr = false;
-          } else if (emptyArr === false) {
-            socket.emit('cmds', gameKeys);
-            emptyArr = true;
+        // инициализация
+        userCtrl.init({
+          keys: serverData.keys,
+          panel: serverData.panel,
+          size: {
+            width: window.innerWidth,
+            height: window.innerHeight
           }
         });
-
-        // отображение игры
-        back.style.display = 'block';
-        vimp.style.display = 'block';
-        radar.style.display = 'block';
-        panel.style.display = 'block';
-        chat.style.display = 'block';
       }
     } else {
       // TODO: авторизация на сервере закончилась
@@ -370,7 +322,7 @@ require([
   // поступление новых данных игры
   socket.on('game', function (data) {
     // TODO: в будещем использование WebWorker
-    var i;
+    var p;
 
     // обновление данных игрока
     if (data[userName]) {
@@ -421,10 +373,10 @@ require([
 
     iterations += 1;
 
-    for (i in data) {
-      if (data.hasOwnProperty(i)) {
-        vimpCtrl.parse(i, data[i]['vimp']);
-        radarCtrl.parse(i, data[i]['radar']);
+    for (p in data) {
+      if (data.hasOwnProperty(p)) {
+        vimpCtrl.parse(p, data[p]['vimp']);
+        radarCtrl.parse(p, data[p]['radar']);
       }
     }
 

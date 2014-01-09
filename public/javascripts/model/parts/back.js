@@ -26,8 +26,8 @@ define(['createjs'], function (createjs) {
     this._i = params.image;
 
     // размеры картинки
-    this._w = params.width + (this._stepX * 2);
-    this._h = params.height + (this._stepY * 2);
+    this._w = params.width + (this._stepX * 4);
+    this._h = params.height + (this._stepY * 4);
 
     // смещение координат
     this._x = -this._stepX;
@@ -56,11 +56,11 @@ define(['createjs'], function (createjs) {
                 this._i;
 
       this._w = p.width ?
-                p.width + (this._stepX * 2) :
+                p.width + (this._stepX * 4) :
                 this._w;
 
       this._h = p.height ?
-                p.height + (this._stepY * 2) :
+                p.height + (this._stepY * 4) :
                 this._h;
 
       this._x = -this._stepX || this._x;
