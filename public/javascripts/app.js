@@ -124,7 +124,7 @@ require([
   ;
 
   // авторизация пользователя
-  (function () {
+  function authUser() {
     var authModel
       , authView
       , authCtrl;
@@ -165,7 +165,8 @@ require([
       {name: 'color', value: userColorA},
       {name: 'model', value: userModelType}
     ]);
-  }());
+  }
+  authUser();
 
   // стартует игру
   function startGame() {
@@ -314,8 +315,8 @@ require([
         });
       }
     } else {
-      // TODO: авторизация на сервере закончилась
-      // неудачей
+      // TODO: авторизация на сервере закончилась неудачей
+      authUser();
     }
   });
 

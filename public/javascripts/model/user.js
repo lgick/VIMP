@@ -162,18 +162,18 @@ define(['Publisher'], function (Publisher) {
   };
 
   // размеры игры
-  UserModel.prototype.resize = function (key, data) {
+  UserModel.prototype.resize = function (keys, data) {
     var width = data.width
       , height = data.height
       , sizes = {}
       , ratio
       , i = 0
-      , len = key.length;
+      , len = keys.length;
 
     for (; i < len; i += 1) {
-      ratio = this._sizeRatio[key[i]] || 1;
+      ratio = this._sizeRatio[keys[i]] || 1;
 
-      sizes[key[i]] = {
+      sizes[keys[i]] = {
         width: Math.round(width * ratio),
         height: Math.round(height * ratio)
       };
