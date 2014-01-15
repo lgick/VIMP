@@ -23,26 +23,33 @@ block content
         div.color-select
           span= 'Please your color:'
           br
-          input(type='radio', name='color', value='#ff0000')
-          span.red= 'red'
+          label.red
+            input(type='radio', name='color', value='#ff0000')
+            = 'red'
           br
-          input(type='radio', name='color', value='#ffa500')
-          span.orange= 'orange'
+          label.orange
+            input(type='radio', name='color', value='#ffa500')
+            = 'orange'
           br
-          input(type='radio', name='color', value='#ffff00')
-          span.yellow= 'yellow'
+          label.yellow
+            input(type='radio', name='color', value='#ffff00')
+            = 'yellow'
           br
-          input(type='radio', name='color', value='#008000')
-          span.green= 'green'
+          label.green
+            input(type='radio', name='color', value='#008000')
+            = 'green'
           br
-          input(type='radio', name='color', value='#00ffff')
-          span.cyan= 'cyan'
+          label.cyan
+            input(type='radio', name='color', value='#00ffff')
+            = 'cyan'
           br
-          input(type='radio', name='color', value='#0000ff')
-          span.blue= 'blue'
+          label.blue
+            input(type='radio', name='color', value='#0000ff')
+            = 'blue'
           br
-          input(type='radio', name='color', value='#ee82ee')
-          span.violet= 'violet'
+          label.violet
+            input(type='radio', name='color', value='#ee82ee')
+            = 'violet'
         div.color-custom
           span= '.. or white it (format: #RrGgBb):'
           br
@@ -50,20 +57,24 @@ block content
         div#auth-color-switcher
           span= 'color for:'
           br
-          input(type='radio', name='cType', value='colorA')
-          span= 'body'
+          label
+            input(type='radio', name='cType', value='colorA')
+            = 'body'
           br
-          input(type='radio', name='cType', value='colorB')
-          span= 'parts'
+          label
+            input(type='radio', name='cType', value='colorB')
+            = 'parts'
       div#auth-models
         div
           span= 'Please your model:'
           br
-          input(type='radio', name='model', value='Halk')
-          span= 'Halk'
+          label
+            input(type='radio', name='model', value='Halk')
+            = 'Halk'
           br
-          input(type='radio', name='model', value='Flat')
-          span= 'Flat'
+          label
+            input(type='radio', name='model', value='Flat')
+            = 'Flat'
         canvas#auth-preview(width='90', height='70')
       div#auth-error
       input#auth-enter(type='button', autofocus, value='Enter')

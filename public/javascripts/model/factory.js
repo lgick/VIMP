@@ -1,14 +1,4 @@
-define([
-  'BackModel',
-  'RadarModel',
-  'HalkModel',
-  'FlatModel'
-], function (
-  Back,
-  Radar,
-  Halk,
-  Flat
-) {
+define([], function () {
   // Фабрика для строительства объектов игры
   // создает объект игры указанного типа
   // по заданным параметрам
@@ -20,15 +10,16 @@ define([
     return new Factory[type](params);
   }
 
+  // добавление конструктора
   // наделяет конструкторы дополнительными методами
   // каждый добавленный конструктор будет их иметь
-  Factory._add = function (name, object) {
+  Factory.add = function (name, object) {
     var addons = Factory.prototype._addons
-      , i;
+      , p;
 
-    for (i in addons) {
-      if (addons.hasOwnProperty(i)) {
-        object.prototype[i] = addons[i];
+    for (p in addons) {
+      if (addons.hasOwnProperty(p)) {
+        object.prototype[p] = addons[p];
       }
     }
 
@@ -44,12 +35,6 @@ define([
       console.log(this.color);
     }
   };
-
-  // конструкторы
-  Factory._add('Back', Back);
-  Factory._add('Radar', Radar);
-  Factory._add('Halk', Halk);
-  Factory._add('Flat', Flat);
 
   return Factory;
 });

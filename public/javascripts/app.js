@@ -3,13 +3,19 @@ require([
   'AuthModel', 'AuthView', 'AuthCtrl',
   'UserModel', 'UserView', 'UserCtrl',
   'GameModel', 'GameView',
-  'VimpCtrl', 'BackCtrl', 'RadarCtrl'
+  'VimpCtrl', 'BackCtrl', 'RadarCtrl',
+  'Factory',
+  'BackParts', 'RadarParts',
+  'HalkParts', 'FlatParts'
 ], function (
   io, preloadjs, createjs,
   AuthModel, AuthView, AuthCtrl,
   UserModel, UserView, UserCtrl,
   GameModel, GameView,
-  VimpCtrl, BackCtrl, RadarCtrl
+  VimpCtrl, BackCtrl, RadarCtrl,
+  Factory,
+  BackParts, RadarParts,
+  HalkParts, FlatParts
 ) {
 
   var window = this
@@ -122,6 +128,13 @@ require([
     , backCtrl = null
     , radarCtrl = null
   ;
+
+
+  // конструкторы игры
+  Factory.add('Back', BackParts);
+  Factory.add('Radar', RadarParts);
+  Factory.add('Halk', HalkParts);
+  Factory.add('Flat', FlatParts);
 
   // авторизация пользователя
   function authUser() {
