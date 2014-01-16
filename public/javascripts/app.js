@@ -27,7 +27,7 @@ require([
 
     , document = window.document
 
-    , socket = io.connect('http://localhost:3000')
+    , socket = io.connect('/')
     , LoadQueue = createjs.LoadQueue
     , ticker = createjs.Ticker
 
@@ -89,7 +89,7 @@ require([
     , manifest = [
         {
           id: 'background',
-          src: '/vimp/images/space.jpg',
+          src: '/images/space.jpg',
           width: 500,
           height: 500
         }

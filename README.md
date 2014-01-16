@@ -1,18 +1,14 @@
 <h1>VIMP (в работе)</h1>
 
-<p>
-  многопользовательская 2D браузерная игра на javascript
-</p>
+2D браузерная онлайн игра на node.js
 
 <img src="https://github.com/hnoe/VIMP/raw/master/public/images/poster.png" alt="poster">
 
 
-++++++++++++++++++++++++++++
-<div>Объект игры</div>
 
-<pre>
 
->>>>> Сервер --> app.js :
+
+<!--
 
 // Example 0
 user = {
@@ -155,7 +151,7 @@ if (!gameModel.read(type, name)) {
 
 
 
-<!-- User.js - объект пользователя. В нем информация о пользователе.
+User.js - объект пользователя. В нем информация о пользователе.
 Player.js - создание объекта Игрок
 Bullet.js - создание объекта Пуля
 auth.js - авторизация

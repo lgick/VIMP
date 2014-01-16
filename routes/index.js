@@ -1,8 +1,8 @@
-exports.index = function(req, res){
+exports.index = function (req, res){
   res.render('index', {
-    baseURL: '/vimp/',
-    jsURL: '/vimp/javascripts/',
-    cssURL: '/vimp/stylesheets/',
+    baseURL: '/',
+    jsURL: '/javascripts/',
+    cssURL: '/stylesheets/',
     title: 'VIMP'
   });
 };
