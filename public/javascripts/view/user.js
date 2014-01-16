@@ -147,19 +147,19 @@ define(['Publisher'], function (Publisher) {
 
   // изменение размеров
   UserView.prototype.resize = function (data) {
-    if (data['vimp']) {
-      this._vimp.width = data['vimp'].width;
-      this._vimp.height = data['vimp'].height;
+    if (data.vimp) {
+      this._vimp.width = data.vimp.width;
+      this._vimp.height = data.vimp.height;
     }
 
-    if (data['back']) {
-      this._back.width = data['back'].width;
-      this._back.height = data['back'].height;
+    if (data.back) {
+      this._back.width = data.back.width;
+      this._back.height = data.back.height;
     }
 
-    if (data['radar']) {
+    if (data.radar) {
       this._radar.width = this._radar.height =
-        data['radar'].width;
+        data.radar.width;
     }
   };
 

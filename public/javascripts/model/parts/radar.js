@@ -35,7 +35,7 @@ define(['createjs'], function (createjs) {
 
   // создание игрока
   p.create = function (colorA, colorB) {
-    var g = this.graphics
+    var g = this.graphics;
 
     this.colorA = colorA ? colorA : this.colorA;
     this.colorB = colorB ? colorB : this.colorB;

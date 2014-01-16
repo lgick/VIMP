@@ -19,7 +19,7 @@ define([], function () {
       this._model.update('radar', name, data);
     } else {
       this._model.create(
-        'radar', name, data['constructor'], data
+        'radar', name, data.constructor, data
       );
     }
   };

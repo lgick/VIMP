@@ -21,7 +21,7 @@ define([], function () {
           this._model.update(p, name, data[p]);
         } else {
           this._model.create(
-            p, name, data[p]['constructor'], data[p]
+            p, name, data[p].constructor, data[p]
           );
         }
       }

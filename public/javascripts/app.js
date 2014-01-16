@@ -238,17 +238,17 @@ require([
   function drawBack(data) {
     var img = loader.getItem('background');
 
-    if (img && data['back']) {
+    if (img && data.back) {
       // очищает back
-      backCtrl.remove()
+      backCtrl.remove();
 
       // создание фона с учетом текущих размеров игры
       backCtrl.parse('background', {
         back: {
           constructor: 'Back',
           image: loader.getResult('background'),
-          width: data['back'].width,
-          height: data['back'].height,
+          width: data.back.width,
+          height: data.back.height,
           imgWidth: img.width,
           imgHeight: img.height
         }
@@ -308,12 +308,12 @@ require([
         startGame();
 
         // создание игрока пользователя
-        vimpCtrl.parse(userName, game['vimp']);
-        radarCtrl.parse(userName, game['radar']);
+        vimpCtrl.parse(userName, game.vimp);
+        radarCtrl.parse(userName, game.radar);
 
         // кеширование
-        vimpUserCache = game['vimp']['player'];
-        radarUserCache = game['radar'];
+        vimpUserCache = game.vimp.player;
+        radarUserCache = game.radar;
 
         userModel.publisher.on('resize', resize);
 
@@ -326,7 +326,7 @@ require([
             height: window.innerHeight
           }
         });
-      }
+      };
     } else {
       // TODO: авторизация на сервере закончилась неудачей
       authUser();
@@ -350,21 +350,21 @@ require([
       // вычисляет данные для фона игры
       backCtrl.updateCoords({
         oldData: vimpUserCache,
-        newData: data[userName]['vimp']['player']
+        newData: data[userName].vimp.player
       });
 
       // КЕШИРОВАНИЕ
-      vimpUserCache = data[userName]['vimp']['player'];
-      radarUserCache = data[userName]['radar'];
+      vimpUserCache = data[userName].vimp.player;
+      radarUserCache = data[userName].radar;
 
       // ОБНОВЛЕНИЕ ЧАТА
-      if (data[userName]['chat']) {
-        userCtrl.updateChat(data[userName]['chat']);
+      if (data[userName].chat) {
+        userCtrl.updateChat(data[userName].chat);
       }
 
       // ОБНОВЛЕНИЕ ПАНЕЛИ
-      if (data[userName]['panel']) {
-        userCtrl.updatePanel(data[userName]['panel']);
+      if (data[userName].panel) {
+        userCtrl.updatePanel(data[userName].panel);
       }
     }
 
@@ -389,8 +389,8 @@ require([
 
     for (p in data) {
       if (data.hasOwnProperty(p)) {
-        vimpCtrl.parse(p, data[p]['vimp']);
-        radarCtrl.parse(p, data[p]['radar']);
+        vimpCtrl.parse(p, data[p].vimp);
+        radarCtrl.parse(p, data[p].radar);
       }
     }
 
