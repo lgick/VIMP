@@ -27,7 +27,7 @@ require([
 
     , document = window.document
 
-    , socket = io.connect('/')
+    , socket = io.connect()
     , LoadQueue = createjs.LoadQueue
     , ticker = createjs.Ticker
 
@@ -70,7 +70,6 @@ require([
     , PANEL_RANK_ID = 'panel-rank'
 
 
-
     , RADAR_SCALE_RATIO = 20
 
       // Частота полной очистки памяти от объектов
@@ -81,7 +80,7 @@ require([
       // ними работать.
       // После достижения лимита вся память будет очищена
       // и объекты будут создаваться заново
-    , LIMIT_ITERATION = 100
+    , MEMORY_ITERATION_LIMIT = 100
 
     , loader
       // TODO: перенести это на сервер
@@ -128,7 +127,6 @@ require([
     , backCtrl = null
     , radarCtrl = null
   ;
-
 
   // конструкторы игры
   Factory.add('Back', BackParts);
@@ -300,8 +298,8 @@ require([
 
       loader.loadManifest(manifest);
 
-      // функция после загрузки данных
-      loader.onComplete = function () {
+      // событие при завершении загрузки
+      loader.on("complete", function () {
         var game = serverData.game;
 
         // запуск игры
@@ -326,7 +324,8 @@ require([
             height: window.innerHeight
           }
         });
-      };
+      });
+
     } else {
       // TODO: авторизация на сервере закончилась неудачей
       authUser();
@@ -379,7 +378,7 @@ require([
     // объекты не приходят с сервера)
     // Решение: ПРИСЫЛАТЬ ВСЕ ОБЪЕКТЫ С СЕРВЕРА,
     // ДАЖЕ ТЕ, КОТОРЫЕ НЕ СОВЕРШАЛИ ДЕЙСТВИЙ
-    if (iterations === LIMIT_ITERATION) {
+    if (iterations === MEMORY_ITERATION_LIMIT) {
       vimpCtrl.remove();
       radarCtrl.remove();
       iterations = 0;

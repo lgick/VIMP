@@ -9,6 +9,7 @@
 ### install
 ```bash
 git clone https://github.com/lgick/VIMP.git VIMP && cd VIMP
+bower install
 npm install
 npm start
 ```

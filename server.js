@@ -1,26 +1,21 @@
 var express = require('express');
-var routes = require('./routes');
 var path = require('path');
-var app = require('./lib/app');
+var config = require('config');
 
-var e = express();
 
-// all environments
-e.set('port', process.env.PORT || 3000);
-e.set('views', __dirname + '/views');
-e.set('view engine', 'jade');
-e.use(express.favicon());
-e.use(express.logger('dev'));
-e.use(express.bodyParser());
-e.use(express.methodOverride());
-e.use(e.router);
-e.use(express.static(path.join(__dirname, 'public')));
+var app = express();
 
-// development only
-if ('development' == e.get('env')) {
-  e.use(express.errorHandler());
-}
+app.set('views', path.join(__dirname, '/views'));
+app.set('view engine', 'jade');
 
-e.get('/', routes.index);
+app.use(express.favicon(path.join(__dirname, '/public/images/favicon.ico')));
+app.use(express.static(path.join(__dirname, '/public')));
 
-app.create(e.listen(e.get('port')));
+require('routes')(app);
+
+
+var server = require('http').createServer(app);
+server.listen(config.get('port'));
+
+var io = require('lib/app');
+io.create(server);

@@ -1,13 +1,17 @@
 meta(charset='UTF-8')
 title= title
-link(rel='stylesheet', href= cssURL + 'style.css')
-script(data-main= jsURL + 'app', src= jsURL + 'lib/require.js')
+link(rel='stylesheet', href= '/stylesheets/style.css')
+script(
+  data-main= '/javascripts/app',
+  src= '/javascripts/vendor/requirejs-bower/require.js'
+)
 script.
   require.config({
     paths: {
-      io:          '/socket.io/socket.io',
-      preloadjs:   'lib/preloadjs-NEXT.min',
-      createjs:    'lib/easeljs-NEXT.min',
+      io:          'vendor/socket.io-client/dist/socket.io.min',
+      preloadjs:   'vendor/createjs-preloadjs/lib/preloadjs-NEXT.min',
+      createjs:    'vendor/easeljs/lib/easeljs-NEXT.min',
+
       Publisher:   'lib/publisher',
 
       AuthView:    'view/auth',
