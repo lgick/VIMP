@@ -1,5 +1,5 @@
 require([
-  'io', 'preloadjs', 'createjs',
+  'io', 'createjs',
   'AuthModel', 'AuthView', 'AuthCtrl',
   'UserModel', 'UserView', 'UserCtrl',
   'GameModel', 'GameView',
@@ -8,7 +8,7 @@ require([
   'BackParts', 'RadarParts',
   'HalkParts', 'FlatParts'
 ], function (
-  io, preloadjs, createjs,
+  io, createjs,
   AuthModel, AuthView, AuthCtrl,
   UserModel, UserView, UserCtrl,
   GameModel, GameView,
