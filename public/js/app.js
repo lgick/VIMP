@@ -19,15 +19,18 @@ require([
 ) {
 
   var window = this
+    , document = window.document
     , localStorage = window.localStorage
+
     , userName = localStorage.userName || ''
     , userColorA = localStorage.userColorA || '#333333'
     , userColorB = localStorage.userColorB || '#444444'
     , userModelType = localStorage.userModelType || 'Halk'
 
-    , document = window.document
+    , socket = io.connect('', {
+        reconnect: false
+      })
 
-    , socket = io.connect()
     , LoadQueue = createjs.LoadQueue
     , ticker = createjs.Ticker
 
@@ -69,6 +72,9 @@ require([
     , PANEL_SCORE_ID = 'panel-score'
     , PANEL_RANK_ID = 'panel-rank'
 
+      // ERROR
+    , ERROR_ID = 'error'
+
 
     , RADAR_SCALE_RATIO = 20
 
@@ -88,7 +94,7 @@ require([
     , manifest = [
         {
           id: 'background',
-          src: '/images/space.jpg',
+          src: '/img/space.jpg',
           width: 500,
           height: 500
         }
@@ -119,6 +125,7 @@ require([
     , panelHealth = document.getElementById(PANEL_HEALTH_ID)
     , panelScore = document.getElementById(PANEL_SCORE_ID)
     , panelRank = document.getElementById(PANEL_RANK_ID)
+    , error = document.getElementById(ERROR_ID)
 
     , userModel = null
     , userCtrl = null
@@ -128,7 +135,7 @@ require([
     , radarCtrl = null
   ;
 
-  // конструкторы игры
+  // инициализация конструкторов игры
   Factory.add('Back', BackParts);
   Factory.add('Radar', RadarParts);
   Factory.add('Halk', HalkParts);
@@ -279,6 +286,15 @@ require([
     });
   }
 
+  // переподключение к серверу
+  function reconnect() {
+    socket.once('error', function () {
+      window.setTimeout(reconnect, 500);
+    });
+
+    socket.socket.connect();
+  }
+
 // ДАННЫЕ С СЕРВЕРА
 
   // поступление начальных данных игры
@@ -295,7 +311,6 @@ require([
 
       // загрузка графических файлов
       loader = new LoadQueue(false);
-
       loader.loadManifest(manifest);
 
       // событие при завершении загрузки
@@ -325,7 +340,6 @@ require([
           }
         });
       });
-
     } else {
       // TODO: авторизация на сервере закончилась неудачей
       authUser();
@@ -334,7 +348,6 @@ require([
 
   // поступление новых данных игры
   socket.on('game', function (data) {
-    // TODO: в будещем использование WebWorker
     var p;
 
     // обновление данных игрока
@@ -396,5 +409,29 @@ require([
     // тут будет обновление всех представлений
     gameUpdateAllView();
 
+  });
+
+
+
+  // Ошибки соединения
+  socket.on('connect', function () {
+    error.innerHTML = '';
+    error.style.display = 'none';
+  });
+
+  socket.on('disconnect', function () {
+    error.innerHTML = 'Server disconnect :(';
+    error.style.display = 'block';
+    window.setTimeout(reconnect, 500);
+  });
+
+  socket.on('reconnect_failed', function () {
+    error.innerHTML = 'Server reconnect failed :(';
+    error.style.display = 'block';
+  });
+
+  socket.on('connect_failed', function () {
+    error.innerHTML = 'Server connect failed :(';
+    error.style.display = 'block';
   });
 });

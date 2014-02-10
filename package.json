@@ -4,13 +4,12 @@
   "description": "game framework",
   "private": true,
   "scripts": {
-    "start": "NODE_ENV=development NODE_PATH=. nodemon server.js"
+    "start": "NODE_PORT=3000 NODE_GAME=tank NODE_ENV=development nodemon server.js"
   },
   "dependencies": {
     "socket.io": "~0.9.16",
     "express": "~3.3.4",
     "jade": "~1.1.4",
-    "nconf": "~0.6.9",
     "winston": "~0.7.2",
     "mongoose": "~3.8.5",
 

@@ -3,4 +3,4 @@ _*
 node_modules/
 .TRASH
 /public/tests/
-/public/javascripts/vendor/
+/public/js/vendor/

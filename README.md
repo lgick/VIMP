@@ -2,7 +2,7 @@
 
 браузерная онлайн игра на node.js
 
-![poster](https://github.com/hnoe/VIMP/raw/master/public/images/poster.png)
+![poster](https://github.com/hnoe/VIMP/raw/master/public/img/poster.png)
 
 
 

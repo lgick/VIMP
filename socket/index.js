@@ -1,31 +1,25 @@
-// TODO: при авторизации если выбрать модель flat и поставить все цвета в #333 модель сливается в фоном
-// TODO: капча на форму авторизации
-// TODO: сделать рамку на радаре, отображаемую видимую область (учесть зум!!!)
-// TODO: Все данные авторизации пришедшие на сервер проверять!
-// TODO: проверять данные авторизации на соответствие
-// TODO: проверять и экранировать символы '"&<> во всех пользовательских данных
-// TODO: при изменении размеров масштаба браузера (cmd +, cmd -) игра ломается
-// TODO: проверять данные при авторизаци (длину логина!!!)
-// TODO: если пользователь в браузере заменит стили и вернет авторизационное окно находясь в игре. Нажмет отправить - будет 2 учетки
-// TODO: чат огранить количество введенных символов
-// TODO: банить голосованием (бан по ip, бан по браузеру (localStorage))
-// TODO: отказ в авторизации (или добавления к нику тега (<number>)), если игрок с таким ником уже есть на сервере
-var mapWidth = 2000
-  , mapHeight = 2000;
+var log = require('../lib/log')(module);
+var config = require('../config');
 
-function create(server) {
-  var utils = require('./utils');
+module.exports = function (server) {
   var io = require('socket.io').listen(server);
 
-  io.sockets.on('connection', function (socket) {
+  io.set('origins', 'localhost:' + config.get('basic:port'));
+  io.set('logger', log);
 
+  var mapWidth = 2000
+    , mapHeight = 2000;
+
+  var utils = require('./lib/utils');
+
+  io.sockets.on('connection', function (socket) {
     var cmds = [];
     var users = {};      // данные всех игроков (включая пользователя) для отправки на клиент пользователю
     var user = {};       // данных пользователя
     var userName;
     var userIO = {};     // онлайн игроки
     var flag = false;    // флаг об обновлении данных пользователя
-    var botOn = false;   // флаг для включения ботов в игру
+    var botOn = true;   // флаг для включения ботов в игру
     var chatList = []    // чат-лист
 
     // создание ботов для проверки
@@ -278,6 +272,4 @@ function create(server) {
       console.log('DISCONNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNECTQ');
     });
   });
-}
-
-exports.create = create;
+};
