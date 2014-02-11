@@ -15,18 +15,14 @@
 
 var express = require('express');
 var path = require('path');
-var env = process.env;
 
 
 // CONFIG
 var config = require('./config');
-var game = env.NODE_GAME;
-var bConf = require(path.join(__dirname, '/config/basic.json'));
-var gConf = require(path.join(__dirname + '/config/parts/' + game + '.json'));
 
-config.set('basic', bConf);
-config.set(game, gConf);
-config.set('basic:port', env.NODE_PORT);
+config.set('basic', require(path.join(__dirname, '/config/basic.js')));
+config.set('game', require(path.join(__dirname, process.env.NODE_GAMECONF)));
+config.set('basic:port', process.env.NODE_PORT);
 
 
 // EXPRESS
