@@ -161,22 +161,23 @@ define(['Publisher'], function (Publisher) {
     }
   };
 
-  // размеры игры
-  UserModel.prototype.resize = function (keys, data) {
+  // рассчитывает размеры элементов с учетом пропорций
+  UserModel.prototype.resize = function (data) {
     var width = data.width
       , height = data.height
       , sizes = {}
       , ratio
-      , i = 0
-      , len = keys.length;
+      , p;
 
-    for (; i < len; i += 1) {
-      ratio = this._sizeRatio[keys[i]] || 1;
+    for (p in this._sizeRatio) {
+      if (this._sizeRatio.hasOwnProperty(p)) {
+        ratio = this._sizeRatio[p];
 
-      sizes[keys[i]] = {
-        width: Math.round(width * ratio),
-        height: Math.round(height * ratio)
-      };
+        sizes[p] = {
+          width: Math.round(width * ratio),
+          height: Math.round(height * ratio)
+        };
+      }
     }
 
     this.publisher.emit('resize', sizes);

@@ -133,9 +133,7 @@ define([], function () {
 
   // обновляет размеры
   UserCtrl.prototype.resize = function (data) {
-    var keys = ['vimp', 'back', 'radar'];
-
-    this._model.resize(keys, data);
+    this._model.resize(data);
   };
 
   return UserCtrl;
