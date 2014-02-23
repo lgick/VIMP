@@ -210,16 +210,14 @@ require([
     });
     userView = new UserView(userModel, {
       window: window,
-      back: back,
-      vimp: vimp,
-      radar: radar,
+      modules: [back, vimp, radar, chat, panel],
+      panel: {
+        health: panelHealth,
+        score: panelScore,
+        rank: panelRank
+      },
       cmd: cmd,
-      chat: chat,
-      chatBox: chatBox,
-      panel: panel,
-      panelHealth: panelHealth,
-      panelScore: panelScore,
-      panelRank: panelRank
+      chatBox: chatBox
     });
     userCtrl = new UserCtrl(userModel, userView);
 
@@ -243,7 +241,7 @@ require([
   function drawBack(data) {
     var img = loader.getItem('background');
 
-    if (img && data.back) {
+    if (img) {
       // очищает back
       backCtrl.remove();
 
@@ -252,8 +250,8 @@ require([
         back: {
           constructor: 'Back',
           image: loader.getResult('background'),
-          width: data.back.width,
-          height: data.back.height,
+          width: data.width,
+          height: data.height,
           imgWidth: img.width,
           imgHeight: img.height
         }
@@ -263,7 +261,9 @@ require([
 
   // ресайз игры
   function resize(data) {
-    drawBack(data);
+    if (data.name === 'back') {
+      drawBack(data);
+    }
 
     gameUpdateAllView();
   }
