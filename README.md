@@ -8,7 +8,7 @@
 
 ### install
 ```bash
-git clone https://github.com/lgick/VIMP.git VIMP && cd VIMP && bower install && npm install && npm start
+git clone git@github.com:lgick/VIMP.git VIMP && cd VIMP && bower install && npm install && npm start
 ```
 
 http://localhost:3000

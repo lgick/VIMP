@@ -10,12 +10,9 @@ define(['createjs'], function (createjs) {
   }
 
   p = Ship.prototype = new Container();
-  p.Container_initialize = p.initialize;
 
   // инициализация
   p.initialize = function (params) {
-    this.Container_initialize();
-
     this.body = new Shape();
     this.flame = new Shape();
 

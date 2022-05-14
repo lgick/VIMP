@@ -10,12 +10,9 @@ define(['createjs'], function (createjs) {
   }
 
   p = Radar.prototype = new Shape();
-  p.Shape_initialize = p.initialize;
 
   // инициализация
   p.initialize = function (params) {
-    this.Shape_initialize();
-
     this.x = params.x || 0;
     this.y = params.y || 0;
     this.rotation = params.rotation || 0;

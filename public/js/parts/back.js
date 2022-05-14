@@ -9,12 +9,9 @@ define(['createjs'], function (createjs) {
   }
 
   p = Back.prototype = new Shape();
-  p.Shape_initialize = p.initialize;
 
   // инициализация
   p.initialize = function (params) {
-    this.Shape_initialize();
-
     this.x = 0;
     this.y = 0;
 
